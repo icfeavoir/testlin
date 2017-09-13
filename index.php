@@ -1,14 +1,9 @@
 <?php
+	require 'Linkedin.php';
 
     require_once('const.php');
-    require_once('curl_functions.php');
+    require_once('db.php');
 
-    $ch = curl_init();
-
-    if(!is_file('cookie.txt'))
-        login($ch, USERNAME, PASSWORD);
-
-    echo access_page($ch, 'messaging/');
-    close_curl($ch);
-
+    // $li = new Linkedin(USERNAME, PASSWORD);
+    // $li->close_curl();
 
