@@ -7,12 +7,15 @@
 		private $_username;
 		private $_password;
 
-		public function __construct($user, $pass){
+		public function __construct($user = null, $pass = null){
 			$this->_ch = curl_init();
-			$this->_username = $user;
-			$this->_password = $pass;
 
-			$this->login();
+			if($user != null && $pass != null){		// if new connection
+				$this->_username = $user;
+				$this->_password = $pass;
+
+				$this->login();
+			}
 		}
 
 		private function login(){
@@ -109,7 +112,11 @@
 		    return $content;
 		}
 
-		public function connect_to($profile_id){
+		public function connect_to($profile_id, $check_in_db = true){
+			if($check_in_db && isConnectSent($profile_id)!==false){	// already sent
+				return null;
+			}
+
 			// we have to delete every slashes (/)
 			while($profile_id[0] === '/')
 				$profile_id = substr($profile_id, 1);
@@ -127,6 +134,9 @@
 			    "cookie: JSESSIONID='ajax:$cookie';",
 			    "csrf-token: ajax:$cookie",
 			);
+
+			//saving in DB
+			saveConnectSent($profile_id);
 
 			return $this->access_page('voyager/api/growth/normInvitations', $payload, $headers, false, false);
 		}
@@ -181,7 +191,10 @@
 			return $all_search_result;
 		}
 
-		public function send_msg($profile_id, $msg){
+		public function send_msg($profile_id, $msg, $check_in_db = true){
+			if($check_in_db && isMsgSent($profile_id)!==false){	// already sent
+				return null;
+			}
 			// we have to delete every slashes (/)
 			while($profile_id[0] === '/')
 				$profile_id = substr($profile_id, 1);
@@ -197,6 +210,9 @@
 					"cookie: JSESSIONID='ajax:$cookie';",
 				    "csrf-token: ajax:$cookie",
 				);
+
+			//saving in DB
+			saveMsgSent($profile_id, $msg);
 
 			return $this->access_page('voyager/api/messaging/conversations?action=create', $payload, $headers, false, false);
 		}
