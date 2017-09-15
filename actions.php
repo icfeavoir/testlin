@@ -33,11 +33,17 @@
     	$unread = Linkedin::noInst()->getUnreadConversations();
     	// then select a random one
     	$conv = $unread[rand(0, count($unread)-1)];
+    	$conv = '6313350241940750337';
     	//then all msgs frome this conv
     	$msgs = Linkedin::noInst()->getAllMsg($conv);
 
     	$json['showMsg'] = false;
     	$json['conv'] = json_encode($msgs);
+    	$json['conv_id'] = $conv;
+	}
+	// SEND MESSAGE
+	else if($_POST['action'] == 'sendMsg'){
+		$msg = Linkedin::noInst()->send_msg();
 	}
 
 	exit(json_encode($json));

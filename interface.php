@@ -5,6 +5,7 @@
 		require_once('db.php');
 	?>
 	<head>
+		<title>LinkedIn Bot Admin Interface</title>
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -81,6 +82,35 @@
 			    border-top: 1px solid #ccc;
 			    margin: 1em 0;
 			}
+
+
+			#random-conv{
+				color: white;
+				cursor: pointer;
+			}
+			.conversation .conv-msg{
+				max-height: 600px;
+				overflow-y: scroll;
+			}
+			div.bot, div.user{
+				width: 60%;
+				margin: 1%;
+				border-radius: 10px;
+				padding: 5px;
+			}
+			div.bot{
+				text-align: right;
+				margin-left: 39%;
+				background-color: rgb(66,139,202);
+				color: white;
+			}
+			div.user{
+				text-align: left;
+				background-color: white;
+			}
+			p.date{
+				font-weight: bold;
+			}
 		</style>
 	</head>
 	<body>
@@ -89,15 +119,15 @@
 			<p class="alert"></p>
 		</div>
 
-		<h1 class="text-center linkedin-color"><i class="fa fa-linkedin-square" aria-hidden="true"></i> LinkedIn Bot Interface</h1>
+		<h1 class="text-center linkedin-color"><i class="fa fa-linkedin-square" aria-hidden="true"></i> LinkedIn Bot Admin Interface</h1>
 
 		<div class="text-center">
 			<div class="column column-1">
-				<h6 class="title">Key Words</h6>
+				<h6 class="title">Settings</h6>
 				<div class="content">
 					<div class="alert alert-info"><p class="description">Here you can add or delete key words the bot will use to search people</p></div>
 					<input class="form-control" type="text" placeholder="Key word" id="key-word" />
-					<button class="btn btn-sm btn-primary" type="button" id="saveKeyWord">Save</button>
+					<button class="btn btn-sm btn-primary" type="button" id="saveKeyWord">Save key word</button>
 					<div class="key-words-list">
 						<ul>
 							<?php
@@ -107,12 +137,23 @@
 							?>
 						</ul>
 					</div>
+					<br/>
+					<div class="alert alert-info"><p class="description">The default message to send to every user who just accept the invitation</p></div>
+					<textarea class="form-control" rows="5"></textarea><br/>
+					<button class="btn btn-primary btn-sm" id="save-default-msg">Save default messsage</button>
 				</div>
 			</div>
-			<div class="column column-2">
-				<h6 class="title">Random unread conversation</h6>
+			<div class="column column-2 conversation">
+				<h6 class="title">Random unread conversation - <a id="random-conv">Another random conversation!</a></h6>
 				<div class="content">
-					<div class="unread"></div>
+					<div class="conv-msg">
+						
+					</div>
+					<hr/>
+					<div class="answer-form">
+						<textarea class="form-control" rows="5"></textarea><br/>
+						<button class="btn btn-primary btn-md btn-block" id="send-msg">Send</button>
+					</div>
 				</div>
 			</div>
 			<div class="column column-3">
@@ -141,7 +182,7 @@ $(document).ready(function(){
 			if(resp.showMsg)
 				showBar(resp.success, resp.msg);
 			callback(resp);
-		});
+		}, "json");
 	}
 
 	function showBar(isSuccess, msg){
@@ -179,10 +220,26 @@ $(document).ready(function(){
 	}
 
 	function getRandomUnreadConversation(){
+		$('.conversation .conv-msg').html('<br/><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
 		post({'action': 'randomUnreadConv'}, function(resp){
-			console.log(resp);
+			$('.conversation .conv-msg').html('');
+			var msgs = $.parseJSON(resp.conv);
+			$.each(msgs, function(index, val){
+				$('.conversation .conv-msg').append(
+					'<div class="'+val.by+'"><p class="date">'+(val.by=='bot'?'BOT':'USER')+' - '+val.date+'</p><p class="text">'+val.msg+'</p></div>'
+				);
+			});
+			// scroll to bottom
+			$(".conv-msg").animate({ scrollTop: $('.conv-msg')[0].scrollHeight }, "slow");
+
+			// saving conv_id for answer
+			$('#send-msg').attr('conv-id', ''+resp.conv_id);
 		});
 	}
+
+	$('#send-msg').click(function(){
+		console.log($(this).attr('id'));
+	});
 
 	$('.key-words-list i').on("click", function(){		// not worrking
 		var id = $(this).attr('id');
@@ -190,7 +247,6 @@ $(document).ready(function(){
 			$('i[id="'+id+'"]').parent().remove();
 		});
 	});
-
 	$('#saveKeyWord').click(function(){
 		saveKeyWord();
 	});
@@ -200,6 +256,8 @@ $(document).ready(function(){
 			saveKeyWord();
 		}
 	});
+	$('#random-conv').click(getRandomUnreadConversation);
+	
 
 
 	// every  10 sec, we refresh stats and the first time too

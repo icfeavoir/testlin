@@ -5,9 +5,9 @@
 
     $li = new Linkedin();
 
-    $me=$li->search_to_array('Pierre Leroy Youpic')[0];
-    // $li->send_msg($me, 'Hello there!');
-    print_r(Linkedin::noInst()->getAllMsg('6313350241940750337'));
+    $id = $li->getIdByConversation('6284458498528997376');
+    echo print_r($li->getUserInformations($id));
+
     $li->close_curl();
 
 

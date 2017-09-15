@@ -6,16 +6,20 @@
 		private $_ch;
 		private $_username;
 		private $_password;
+		private $_myProfileId;
+		private $_myName;
 
 		public function __construct($user = null, $pass = null){
 			$this->_ch = curl_init();
-
 			if($user != null && $pass != null){		// if new connection
 				$this->_username = $user;
 				$this->_password = $pass;
 
 				$this->login();
 			}
+			$this->_myProfileId = $this->fetch_value($this->page('in/'), 'miniProfile:', '&');
+			$this->_myName = $this->fetch_value($this->page('in/'), 'firstName&quot;:&quot;', '&');
+			$this->_myName .= ' '.$this->fetch_value($this->page('in/'), 'lastName&quot;:&quot;', '&');
 		}
 
 		public static function noInst(){
@@ -297,6 +301,35 @@
 				}
 			}
 			return $msg_list;
+		}
+
+		public function getUserInformations($profile_id){
+			$profile = $this->page('in/'.$profile_id.'/');
+			$content = explode('li:fs_profile:'.$profile_id, $profile);
+			unset($content[0]);
+			$firstName = ''; $lastName = '';
+			foreach ($content as $key=>$val) {
+				if($firstName == ''){
+					$firstName = $this->fetch_value($val, 'firstName&quot;:&quot;', '&quot;');
+				}
+				if($lastName == ''){
+					$lastName = $this->fetch_value($val, 'lastName&quot;:&quot;', '&quot;');
+				}
+			}
+			return array('firstName'=>$firstName, 'lastName'=>$lastName);
+		}
+
+		public function getIdByConversation($conv_id){
+			// return the user ID of this conv
+			$conv = $this->page('messaging/thread/'.$conv_id.'/');
+			file_put_contents('conv', $conv);
+			$conv = explode('urn:li:fs_miniProfile', $conv);
+			// the good id is the last one because linkedin load conversation from today to the one you want (or something like that)
+			do{
+				$id = $this->fetch_value(end($conv), ':', '&quot;');
+				unset($conv[count($conv)-1]);
+			}while($id == $this->_myProfileId || $id == '');
+			return $id;
 		}
 
 
