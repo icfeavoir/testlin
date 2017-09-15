@@ -18,6 +18,10 @@
 			}
 		}
 
+		public static function noInst(){
+			return new Linkedin();
+		}
+
 		private function login(){
 			//DELETE PREVIOUS COOKIE FILE AND A NEW ONE
 		    if(!(is_file('cookie.txt'))){
@@ -30,7 +34,7 @@
 		    	}
 		    }
 		    // first access to the main page to get some linkedin post data values
-		    $login_content = $this->access_page('/uas/login', array(), array(), true, false);
+		    $login_content = $this->page('/uas/login', array(), array(), true, false);
 		    // post data to send
 		    $var = array(
 		        'isJsEnabled' => 'false',
@@ -54,7 +58,7 @@
 		    }
 
 		    // Now we can log in
-		    $login = $this->access_page('/uas/login-submit', $post_array, [], true, false);
+		    $login = $this->page('/uas/login-submit', $post_array, [], true, false);
 		    return $login;
 		}
 
@@ -70,7 +74,7 @@
 		*
 		* @return string The content of the page
 		*/
-		public function access_page($page = '', $postdata = array(), $headers = array(), $data_to_string = true, $urlReplace = true){
+		public function page($page = '', $postdata = array(), $headers = array(), $data_to_string = true, $urlReplace = true){
 
 			while($page[0] === '/')
 				$page = substr($page, 1);
@@ -122,7 +126,7 @@
 				$profile_id = substr($profile_id, 1);
 			$profile_id = rtrim($profile_id, '/');
 			// first access to the profile to find the tracking ID
-			$profile = $this->access_page('in/'.$profile_id);
+			$profile = $this->page('in/'.$profile_id);
 			$trackingId = $this->fetch_value($profile, "&quot;trackingId&quot;:&quot;", '&#61;&#61;&quot;').'==';
 			// sending invitation to profileId account!
 			$payload = '{"trackingId":"'.$trackingId.'","invitations":[],"excludeInvitations":[],"invitee":{"com.linkedin.voyager.growth.invitation.InviteeProfile":{"profileId":"'.$profile_id.'"}}}';
@@ -138,7 +142,7 @@
 			//saving in DB
 			saveConnectSent($profile_id);
 
-			return $this->access_page('voyager/api/growth/normInvitations', $payload, $headers, false, false);
+			return $this->page('voyager/api/growth/normInvitations', $payload, $headers, false, false);
 		}
 
 		public function search($search, $page = 1, $tab = 'people'){
@@ -148,7 +152,7 @@
 				$url = 'jobs/search';
 			else
 				$url = 'search/results/'.$tab;
-			return $this->access_page($url.'/?keywords='.urlencode($search).'&page='.$page);
+			return $this->page($url.'/?keywords='.urlencode($search).'&page='.$page);
 		}
 
 		public function search_to_array($search, $page = 1, $tab = 'people'){	// get an associative array name -> id
@@ -191,10 +195,7 @@
 			return $all_search_result;
 		}
 
-		public function send_msg($profile_id, $msg, $check_in_db = true){
-			if($check_in_db && isMsgSent($profile_id)!==false){	// already sent
-				return null;
-			}
+		public function send_msg($profile_id, $msg){
 			// we have to delete every slashes (/)
 			while($profile_id[0] === '/')
 				$profile_id = substr($profile_id, 1);
@@ -202,23 +203,116 @@
 
 			$payload = '{"conversationCreate":{"eventCreate":{"value":{"com.linkedin.voyager.messaging.create.MessageCreate":{"body":"'.$msg.'","attachments":[]}}},"recipients":["'.$profile_id.'"],"subtype":"MEMBER_TO_MEMBER","name":""}}';
 
+			$headers = $this->getHeaders();
+
+			$sending = $this->page('voyager/api/messaging/conversations?action=create', $payload, $headers, false, false);
+			$infos = explode(',', $this->fetch_value($sending, 'urn:li:fs_event:(', ')'));
+			$conv_id = $infos[0];
+			$msg_id = $infos[1];
+
+			// mark conversation as read
+			$payload = '{"patch":{"$set":{"read":true}}}';
+			array_push($headers, 'referer: https://www.linkedin.com/messaging/thread/'.$conv_id.'/');
+			$this->page('voyager/api/messaging/conversations/'.$conv_id, $payload, $headers, false, false);
+
+			//saving in DB
+			saveMsgSent($profile_id, $msg, $conv_id, $msg_id);
+
+			return $sending;
+		}
+
+		public function checkNewConnections(){
+			$headers = $this->getHeaders();
+
+			$count = 0;
+			$newConnections = [];
+			$notFound = 50;
+			while(true){
+				$connection = $this->page('voyager/api/relationships/connections?count=1&sortType=RECENTLY_ADDED&start='.$count, [], $headers);
+				$id = $this->fetch_value($connection, 'miniProfile:', '"');
+
+				if($notFound > 50){	// to save all the first time this function is called -> if 50 null following, means you got all!
+					break;
+				}
+
+				if($id == null){
+					$notFound++;
+				}else{
+					$notFound = 0;	// if not following, go back to 0.
+				}
+
+				if(isConnectedTo($id)===false){		// not connected so saving it
+					saveConnectedTo($id);
+					array_push($newConnections, $id);
+				}elseif($id != null){	// already saved (and not a bug) = last time this function ran, it stopped at this id.
+					break;
+				}
+				$count++;
+			}
+			return $newConnections;
+		}
+
+		function getUnreadConversations(){
+			$headers = $this->getHeaders();
+			array_push($headers, 'x-restli-protocol-version: 2.0.0');
+			array_push($headers, 'accept: application/vnd.linkedin.normalized+json');
+			$content = $this->page('voyager/api/messaging/conversations?filters=List(UNREAD)&q=search', [], $headers, false, false);
+			$conversations = explode('urn:li:fs_event:(', $content);
+			unset($conversations[0]);
+			$conversation_list = array();
+			foreach ($conversations as $conv) {
+				if(!in_array(intval($conv), $conversation_list))
+					array_push($conversation_list, intval(explode(',', $conv)[0]));
+			}
+			return $conversation_list;
+		}
+
+		/**
+		* Return all msg from a conversation
+		*
+		* @param string $conv The conversation ID
+		*
+		* @return An array of array with key 'bot' or 'user_id' : [0=>[by=>bot, date=>$d, msg=>$m, $msg_id=>$id], 1=>[by=>user, date=>$d2, msg=>$m2], 2=>[]]
+		*/ 
+		function getAllMsg($conv){
+			// date reference from me : 14 September 2017 - 20:14 --> 1505412842611 / Timestamp = 1505412840
+			$ref_timestamp = 1505412840;
+			$ref_timelinkedin = 1505412842611;
+
+			$headers = $this->getHeaders();
+			array_push($headers, 'referer: https://www.linkedin.com/messaging/thread/'.$conv.'/');
+			$content = $this->page('voyager/api/messaging/conversations/'.$conv.'/events', [], $headers, false, false);
+			$msgs = explode('createdAt":', $content);
+			unset($msgs[0]);
+			$msg_list = array(); $memory = array();
+			foreach ($msgs as $msg) {
+				$timelinkedin = explode(',', $msg)[0];
+				if(!in_array($timelinkedin, $memory)){
+					array_push($memory, $timelinkedin);
+					$date = ''.date('Y-m-d H:i:s', round($timelinkedin*$ref_timestamp/$ref_timelinkedin));
+					$msg_text = $this->fetch_value($msg, 'body":"', '",');
+					$msg_id = explode(',', $this->fetch_value($msg, 'urn:li:fs_event:(', ')'))[1];
+					$whoSendIt = isMsgSentId($conv, $msg_id);
+					array_push($msg_list, array('by'=> $whoSendIt===false?'user':'bot', 'date'=>$date, 'msg'=>$msg_text, 'msg_id'=>$msg_id));
+				}
+			}
+			return $msg_list;
+		}
+
+
+		public function close_curl(){
+		    curl_close($this->_ch);
+		}
+
+		private function getHeaders(){	// return the array of headers needed for actions (connect, sending msg, etc);
 			$cookies = file_get_contents('cookie.txt');	// all cookies
 			$cookie = $this->fetch_value($cookies, "JSESSIONID\t\"ajax:", "\"\n");	// the one we want
 
-			$headers = array(
+			return array(
 					'origin: https://www.linkedin.com',
 					"cookie: JSESSIONID='ajax:$cookie';",
 				    "csrf-token: ajax:$cookie",
 				);
-
-			//saving in DB
-			saveMsgSent($profile_id, $msg);
-
-			return $this->access_page('voyager/api/messaging/conversations?action=create', $payload, $headers, false, false);
-		}
-
-		public function close_curl(){
-		    curl_close($this->_ch);
 		}
 
 
