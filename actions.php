@@ -26,6 +26,10 @@
 		$func = $_POST['function'];
 		$json['value'] = count($func());
 	}
+	else if($_POST['action'] == 'unreadConv'){
+		$json['showMsg'] = false;
+		$json['value'] = count(Linkedin::noInst()->getUnreadConversations());
+	}
 	// RANDOM CONVERSATION
 	else if($_POST['action'] == 'randomUnreadConv'){
 		// first all unread conversation
@@ -33,17 +37,25 @@
     	$unread = Linkedin::noInst()->getUnreadConversations();
     	// then select a random one
     	$conv = $unread[rand(0, count($unread)-1)];
-    	$conv = '6313350241940750337';
     	//then all msgs frome this conv
     	$msgs = Linkedin::noInst()->getAllMsg($conv);
+    	// $msgs = explode('delimiter', string)
 
     	$json['showMsg'] = false;
     	$json['conv'] = json_encode($msgs);
     	$json['conv_id'] = $conv;
 	}
+	//MARK AS READ
+	else if($_POST['action'] == 'markRead'){
+		$json['showMsg'] = isset($_POST['show']);
+		$json['msg'] = 'Conversation marked as read!';
+		$msg = Linkedin::noInst()->markConversationAsRead($_POST['conv']);
+	}
+
 	// SEND MESSAGE
 	else if($_POST['action'] == 'sendMsg'){
-		$msg = Linkedin::noInst()->send_msg();
+		$msg = Linkedin::noInst()->send_msg($_POST['profile_id'], $_POST['msg']);
+		$json['msg'] = 'Your msg has been sent!';
 	}
 
 	exit(json_encode($json));

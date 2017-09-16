@@ -78,7 +78,7 @@
 		*
 		* @return string The content of the page
 		*/
-		public function page($page = '', $postdata = array(), $headers = array(), $data_to_string = true, $urlReplace = true){
+		public function page($page = '', $postdata = array(), $headers = array(), $data_to_string = true, $urlReplace = false){
 
 			while($page[0] === '/')
 				$page = substr($page, 1);
@@ -118,6 +118,12 @@
 		    		</script>';
 		    }
 		    return $content;
+		}
+
+		public function show_page($page = '', $postdata = array(), $headers = array(), $data_to_string = true){
+			$page = $this->page($page, $postdata, $headers, $data_to_string, true);
+			echo $page;
+			return $page;
 		}
 
 		public function connect_to($profile_id, $check_in_db = true){
@@ -213,16 +219,20 @@
 			$infos = explode(',', $this->fetch_value($sending, 'urn:li:fs_event:(', ')'));
 			$conv_id = $infos[0];
 			$msg_id = $infos[1];
-
-			// mark conversation as read
-			$payload = '{"patch":{"$set":{"read":true}}}';
-			array_push($headers, 'referer: https://www.linkedin.com/messaging/thread/'.$conv_id.'/');
-			$this->page('voyager/api/messaging/conversations/'.$conv_id, $payload, $headers, false, false);
+			// BUG HERE ?
+			$this->markConversationAsRead($conv_id);
 
 			//saving in DB
 			saveMsgSent($profile_id, $msg, $conv_id, $msg_id);
 
 			return $sending;
+		}
+
+		public function markConversationAsRead($conv_id){
+			$payload = '{"patch":{"$set":{"read":true}}}';
+			$headers = $this->getHeaders();
+			array_push($headers, 'referer: https://www.linkedin.com/messaging/thread/'.$conv_id.'/');
+			$this->page('voyager/api/messaging/conversations/'.$conv_id, $payload, $headers, false, false);
 		}
 
 		public function checkNewConnections(){
@@ -268,6 +278,7 @@
 				if(!in_array(intval($conv), $conversation_list))
 					array_push($conversation_list, intval(explode(',', $conv)[0]));
 			}
+			// TODO? All unread ? Longer...
 			return $conversation_list;
 		}
 
@@ -279,25 +290,29 @@
 		* @return An array of array with key 'bot' or 'user_id' : [0=>[by=>bot, date=>$d, msg=>$m, $msg_id=>$id], 1=>[by=>user, date=>$d2, msg=>$m2], 2=>[]]
 		*/ 
 		function getAllMsg($conv){
-			// date reference from me : 14 September 2017 - 20:14 --> 1505412842611 / Timestamp = 1505412840
-			$ref_timestamp = 1505412840;
-			$ref_timelinkedin = 1505412842611;
-
 			$headers = $this->getHeaders();
 			array_push($headers, 'referer: https://www.linkedin.com/messaging/thread/'.$conv.'/');
-			$content = $this->page('voyager/api/messaging/conversations/'.$conv.'/events', [], $headers, false, false);
+			$content = $this->page('voyager/api/messaging/conversations/'.$conv.'/events', [], $headers, false);
+			file_put_contents('msg', $content);
+			
 			$msgs = explode('createdAt":', $content);
 			unset($msgs[0]);
 			$msg_list = array(); $memory = array();
+			$profile_id = $this->getIdByConversation($conv);
+			$userName = '';
 			foreach ($msgs as $msg) {
 				$timelinkedin = explode(',', $msg)[0];
 				if(!in_array($timelinkedin, $memory)){
 					array_push($memory, $timelinkedin);
-					$date = ''.date('Y-m-d H:i:s', round($timelinkedin*$ref_timestamp/$ref_timelinkedin));
-					$msg_text = $this->fetch_value($msg, 'body":"', '",');
+					$date = ''.date('Y-m-d H:i:s', $this->linkedinDateToTimestamp($timelinkedin));
+					$msg_text = nl2br($this->fetch_value($msg, 'body":"', '",'));
 					$msg_id = explode(',', $this->fetch_value($msg, 'urn:li:fs_event:(', ')'))[1];
-					$whoSendIt = isMsgSentId($conv, $msg_id);
-					array_push($msg_list, array('by'=> $whoSendIt===false?'user':'bot', 'date'=>$date, 'msg'=>$msg_text, 'msg_id'=>$msg_id));
+					$authorId = $this->fetch_value($msg, 'urn:li:fs_miniProfile:', '"');
+					if($authorId != $this->_myProfileId && $userName == ''){	// just once
+						$userName = implode(' ', $this->getUserInformations($authorId));
+					}
+					$authorId = $authorId==$this->_myProfileId?'bot':$userName;
+					array_push($msg_list, array('profile_id'=>$profile_id,'by'=> $authorId, 'date'=>$date, 'msg'=>nl2br($msg_text), 'msg_id'=>$msg_id));
 				}
 			}
 			return $msg_list;
@@ -346,6 +361,19 @@
 					"cookie: JSESSIONID='ajax:$cookie';",
 				    "csrf-token: ajax:$cookie",
 				);
+		}
+
+		private function linkedinDateToTimestamp($linkDate){
+			// date reference from me : 14 September 2017 - 20:14 --> 1505412842611 / Timestamp = 1505412840
+			$ref_timestamp = 1505412840;
+			$ref_timelinkedin = 1505412842611;
+			return round($linkDate*$ref_timestamp/$ref_timelinkedin);
+		}
+		private function timestampToLinkedinDate($timestamp){
+			// date reference from me : 14 September 2017 - 20:14 --> 1505412842611 / Timestamp = 1505412840
+			$ref_timestamp = 1505412840;
+			$ref_timelinkedin = 1505412842611;
+			return round($timestamp*$ref_timelinkedin/$ref_timestamp);
 		}
 
 

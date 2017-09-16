@@ -3,11 +3,11 @@
     require_once('const.php');
     require_once('db.php');
 
-    $li = new Linkedin();
+    $li = new Linkedin(USERNAME, PASSWORD);
 
-    $id = $li->getIdByConversation('6284458498528997376');
-    echo print_r($li->getUserInformations($id));
-
+    // all unread for real!
+    // print_r($li->getUnreadConversations());
+    $li->show_page('');
     $li->close_curl();
 
 

@@ -66,7 +66,7 @@
     			cursor: pointer;
 			}
 			.ajax-response{
-				position: absolute;
+				position: fixed;
 				width: 50%;
 				border-radius: 10px;
 				left: 25%;
@@ -92,21 +92,21 @@
 				max-height: 600px;
 				overflow-y: scroll;
 			}
-			div.bot, div.user{
+			div.convMsg{
 				width: 60%;
 				margin: 1%;
 				border-radius: 10px;
 				padding: 5px;
 			}
-			div.bot{
+			div.convMsg{
+				text-align: left;
+				background-color: white;
+			}
+			div.bot{	/* rewrite css if bot */
 				text-align: right;
 				margin-left: 39%;
 				background-color: rgb(66,139,202);
 				color: white;
-			}
-			div.user{
-				text-align: left;
-				background-color: white;
 			}
 			p.date{
 				font-weight: bold;
@@ -116,7 +116,7 @@
 	<body>
 
 		<div class="ajax-response">
-			<p class="alert"></p>
+			<p class="alert alert-info">test</p>
 		</div>
 
 		<h1 class="text-center linkedin-color"><i class="fa fa-linkedin-square" aria-hidden="true"></i> LinkedIn Bot Admin Interface</h1>
@@ -144,14 +144,16 @@
 				</div>
 			</div>
 			<div class="column column-2 conversation">
-				<h6 class="title">Random unread conversation - <a id="random-conv">Another random conversation!</a></h6>
+				<h6 class="title"><span id="nbUnreadConv">???</span> last unread conversations - <a id="random-conv">Another random unread conversation!</a></h6>
 				<div class="content">
 					<div class="conv-msg">
 						
 					</div>
 					<hr/>
+					<button class="btn btn-md btn-warning" id="mark-read">Mark as read and never see it again?</button>
+					<br/><br/>
 					<div class="answer-form">
-						<textarea class="form-control" rows="5"></textarea><br/>
+						<textarea class="form-control" id="answer-conv-msg" rows="5"></textarea><br/>
 						<button class="btn btn-primary btn-md btn-block" id="send-msg">Send</button>
 					</div>
 				</div>
@@ -175,9 +177,9 @@
 
 <script>
 $(document).ready(function(){
-
 	function post(data, callback){
 		$.post( "actions.php", data).done(function( resp ){
+			console.log(resp);
 			resp = JSON.parse(resp);
 			if(resp.showMsg)
 				showBar(resp.success, resp.msg);
@@ -217,6 +219,11 @@ $(document).ready(function(){
 				$('#'+value).text(resp.value);
 			});
 		});
+
+		// nb unread conv
+		post({'action': 'unreadConv'}, function(resp){
+			$('#nbUnreadConv').text(resp.value);
+		});
 	}
 
 	function getRandomUnreadConversation(){
@@ -224,21 +231,44 @@ $(document).ready(function(){
 		post({'action': 'randomUnreadConv'}, function(resp){
 			$('.conversation .conv-msg').html('');
 			var msgs = $.parseJSON(resp.conv);
-			$.each(msgs, function(index, val){
-				$('.conversation .conv-msg').append(
-					'<div class="'+val.by+'"><p class="date">'+(val.by=='bot'?'BOT':'USER')+' - '+val.date+'</p><p class="text">'+val.msg+'</p></div>'
-				);
-			});
-			// scroll to bottom
-			$(".conv-msg").animate({ scrollTop: $('.conv-msg')[0].scrollHeight }, "slow");
 
-			// saving conv_id for answer
-			$('#send-msg').attr('conv-id', ''+resp.conv_id);
+			if(msgs[msgs.length-1].msg == ''){	// means something like (user just accepted you on LinkedIn, but not a msg)
+				getRandomUnreadConversation();
+				post({'action': 'markRead', 'conv': resp.conv_id}, function(){});
+			}else{
+				$.each(msgs, function(index, val){
+					if(val.msg != ''){
+						$('.conversation .conv-msg').append(
+							'<div class="convMsg '+val.by+'"><p class="date">'+val.by+' - '+val.date+'</p><p class="text">'+val.msg+'</p></div>'
+						);
+					}
+				});
+
+				// scroll to bottom
+				$(".conv-msg").animate({ scrollTop: $('.conv-msg')[0].scrollHeight }, "slow");
+				// saving conv_id for answer
+				$('#send-msg').attr('conv-id', ''+resp.conv_id);
+				$('#send-msg').attr('profile-id', ''+msgs[0].profile_id);
+				// mark as read btn
+				$('#mark-read').attr('conv-id', ''+resp.conv_id);
+			}
 		});
 	}
 
 	$('#send-msg').click(function(){
-		console.log($(this).attr('id'));
+		if($('#answer-conv-msg' != '')){
+			post({'action': 'sendMsg', 'profile_id': $(this).attr('profile-id'), 'msg': $('#answer-conv-msg').val()}, function(){});
+			$('.conversation .conv-msg').append(
+				'<div class="convMsg bot"><p class="date">bot - just now</p><p class="text">'+$('#answer-conv-msg').val()+'</p></div>'
+			);
+			$('#answer-conv-msg').val('');
+			// scroll to bottom
+			$(".conv-msg").animate({ scrollTop: $('.conv-msg')[0].scrollHeight }, "slow");
+		}
+	});
+	$('#mark-read').click(function(){
+		getRandomUnreadConversation();
+		post({'action': 'markRead', 'show': true, 'conv': $(this).attr('conv-id')}, function(){});
 	});
 
 	$('.key-words-list i').on("click", function(){		// not worrking
@@ -258,11 +288,9 @@ $(document).ready(function(){
 	});
 	$('#random-conv').click(getRandomUnreadConversation);
 	
-
-
+	getRandomUnreadConversation();
 	// every  10 sec, we refresh stats and the first time too
 	refreshStats();
-	getRandomUnreadConversation();
 	window.setInterval(refreshStats, 5000);
 });
 </script>
