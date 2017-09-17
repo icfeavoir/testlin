@@ -51,11 +51,19 @@
 		$json['msg'] = 'Conversation marked as read!';
 		$msg = Linkedin::noInst()->markConversationAsRead($_POST['conv']);
 	}
-
 	// SEND MESSAGE
 	else if($_POST['action'] == 'sendMsg'){
 		$msg = Linkedin::noInst()->send_msg($_POST['profile_id'], $_POST['msg']);
 		$json['msg'] = 'Your msg has been sent!';
+	}
+	//DEFAULT MSG
+	else if($_POST['action'] == 'getDefaultMsg'){
+		$json['showMsg'] = false;
+		$json['defaultMsg'] = getDefaultMsg()['msg'];
+	}
+	else if($_POST['action'] == 'setDefaultMsg'){
+		$json['msg'] = 'Default message updated!';
+		saveDefaultMsg($_POST['msg']);
 	}
 
 	exit(json_encode($json));

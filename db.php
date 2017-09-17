@@ -184,3 +184,28 @@
 		$statement = $db->prepare('DELETE FROM key_word_list WHERE ID = :key_word');
 		$statement->execute(array(':key_word' => $id));
 	}
+
+
+	/**
+	* Save default msg to send in DB
+	*
+	* @param string $msg the msg
+	*
+	*/
+	function saveDefaultMsg($msg){
+		global $db;
+		$statement = $db->prepare('UPDATE default_msg SET msg = :msg');
+		$statement->execute(array(':msg' => $msg));
+	}
+
+	/**
+	* Get the default msg
+	*
+	* @return string The msg
+	*/
+	function getDefaultMsg(){
+		global $db;
+		$statement = $db->prepare('SELECT msg FROM default_msg LIMIT 1');
+		$statement->execute();
+		return $statement->fetch();
+	}

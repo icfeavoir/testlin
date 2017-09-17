@@ -25,3 +25,9 @@ CREATE TABLE IF NOT EXISTS `key_word_list` (
 	`ID` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	`key_word` varchar(255) NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS `default_msg` (
+	`msg` varchar(255) NOT NULL,
+	`last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+INSERT INTO default_msg (msg) VALUES ('Hello');

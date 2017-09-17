@@ -116,7 +116,7 @@
 	<body>
 
 		<div class="ajax-response">
-			<p class="alert alert-info">test</p>
+			<p class="alert"></p>
 		</div>
 
 		<h1 class="text-center linkedin-color"><i class="fa fa-linkedin-square" aria-hidden="true"></i> LinkedIn Bot Admin Interface</h1>
@@ -139,7 +139,7 @@
 					</div>
 					<br/>
 					<div class="alert alert-info"><p class="description">The default message to send to every user who just accept the invitation</p></div>
-					<textarea class="form-control" rows="5"></textarea><br/>
+					<textarea class="form-control" rows="5" id="default-msg"></textarea><br/>
 					<button class="btn btn-primary btn-sm" id="save-default-msg">Save default messsage</button>
 				</div>
 			</div>
@@ -177,9 +177,8 @@
 
 <script>
 $(document).ready(function(){
-	function post(data, callback){
+	function post(data, callback=function(){}){
 		$.post( "actions.php", data).done(function( resp ){
-			console.log(resp);
 			resp = JSON.parse(resp);
 			if(resp.showMsg)
 				showBar(resp.success, resp.msg);
@@ -219,11 +218,6 @@ $(document).ready(function(){
 				$('#'+value).text(resp.value);
 			});
 		});
-
-		// nb unread conv
-		post({'action': 'unreadConv'}, function(resp){
-			$('#nbUnreadConv').text(resp.value);
-		});
 	}
 
 	function getRandomUnreadConversation(){
@@ -234,7 +228,7 @@ $(document).ready(function(){
 
 			if(msgs[msgs.length-1].msg == ''){	// means something like (user just accepted you on LinkedIn, but not a msg)
 				getRandomUnreadConversation();
-				post({'action': 'markRead', 'conv': resp.conv_id}, function(){});
+				post({'action': 'markRead', 'conv': resp.conv_id});
 			}else{
 				$.each(msgs, function(index, val){
 					if(val.msg != ''){
@@ -257,7 +251,7 @@ $(document).ready(function(){
 
 	$('#send-msg').click(function(){
 		if($('#answer-conv-msg' != '')){
-			post({'action': 'sendMsg', 'profile_id': $(this).attr('profile-id'), 'msg': $('#answer-conv-msg').val()}, function(){});
+			post({'action': 'sendMsg', 'profile_id': $(this).attr('profile-id'), 'msg': $('#answer-conv-msg').val()});
 			$('.conversation .conv-msg').append(
 				'<div class="convMsg bot"><p class="date">bot - just now</p><p class="text">'+$('#answer-conv-msg').val()+'</p></div>'
 			);
@@ -268,7 +262,7 @@ $(document).ready(function(){
 	});
 	$('#mark-read').click(function(){
 		getRandomUnreadConversation();
-		post({'action': 'markRead', 'show': true, 'conv': $(this).attr('conv-id')}, function(){});
+		post({'action': 'markRead', 'show': true, 'conv': $(this).attr('conv-id')});
 	});
 
 	$('.key-words-list i').on("click", function(){		// not worrking
@@ -287,7 +281,22 @@ $(document).ready(function(){
 		}
 	});
 	$('#random-conv').click(getRandomUnreadConversation);
-	
+
+	$('#save-default-msg').click(function(){
+		if($('#default-msg').val() != ''){
+			post({'action': 'setDefaultMsg', 'msg': $('#default-msg').val()});
+		}
+	});
+
+	// default-msg
+	post({'action': 'getDefaultMsg'}, function(resp){
+		$('#default-msg').val(resp.defaultMsg);
+	})
+
+	// nb unread conv
+	post({'action': 'unreadConv'}, function(resp){
+		$('#nbUnreadConv').text(resp.value);
+	});
 	getRandomUnreadConversation();
 	// every  10 sec, we refresh stats and the first time too
 	refreshStats();
