@@ -127,6 +127,9 @@
 		}
 
 		public function connect_to($profile_id, $check_in_db = true){
+			if($profile_id === null){
+				return null;
+			}
 			if($check_in_db && isConnectSent($profile_id)!==false){	// already sent
 				return null;
 			}
@@ -293,7 +296,6 @@
 			$headers = $this->getHeaders();
 			array_push($headers, 'referer: https://www.linkedin.com/messaging/thread/'.$conv.'/');
 			$content = $this->page('voyager/api/messaging/conversations/'.$conv.'/events', [], $headers, false);
-			file_put_contents('msg', $content);
 			
 			$msgs = explode('createdAt":', $content);
 			unset($msgs[0]);
@@ -337,7 +339,6 @@
 		public function getIdByConversation($conv_id){
 			// return the user ID of this conv
 			$conv = $this->page('messaging/thread/'.$conv_id.'/');
-			file_put_contents('conv', $conv);
 			$conv = explode('urn:li:fs_miniProfile', $conv);
 			// the good id is the last one because linkedin load conversation from today to the one you want (or something like that)
 			do{

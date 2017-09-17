@@ -8,6 +8,31 @@
 
 
 	/**
+	* Get the current state of the bot
+	*
+	* @return Bool is the bot on
+	*/
+	function getIsOn(){
+		global $db;
+		$statement = $db->prepare('SELECT isOn FROM bot_on_off LIMIT 1');
+		$statement->execute();
+		return $statement->fetch()['isOn'] == true;
+	}
+
+	/**
+	* Change the state of the bot (on off)
+	*
+	* @param bool $isOn true for the bot on, false for the bot off
+	*/
+	function setIsOn($isOn){
+		global $db;
+		$statement = $db->prepare('UPDATE bot_on_off SET isOn = :isOn');
+		$statement->bindValue(':isOn', $isOn, PDO::PARAM_INT);
+		$statement->execute();
+	}
+
+
+	/**
 	* Get all the connections request the bot sent
 	*
 	* @return Array with all connections request

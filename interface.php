@@ -11,6 +11,58 @@
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 		<style>
+			.switch {
+				position: relative;
+				display: inline-block;
+				width: 60px;
+				height: 34px;
+			}
+
+			.switch input {display:none;}
+
+			.slider {
+				position: absolute;
+				cursor: pointer;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background-color: #ccc;
+				-webkit-transition: .4s;
+				transition: .4s;
+			}
+
+			.slider:before {
+				position: absolute;
+				content: "";
+				height: 26px;
+				width: 26px;
+				left: 4px;
+				bottom: 4px;
+				background-color: white;
+				-webkit-transition: .4s;
+				transition: .4s;
+			}
+
+			input:checked + .slider {
+				background-color: #2196F3;
+			}
+
+			input:checked + .slider:before {
+				-webkit-transform: translateX(26px);
+				-ms-transform: translateX(26px);
+				transform: translateX(26px);
+			}
+
+			/* Rounded sliders */
+			.slider.round {
+				border-radius: 34px;
+			}
+
+			.slider.round:before {
+				border-radius: 50%;
+			}
+
 			.linkedin-color{
 				color: rgb(0,119,181);
 			}
@@ -121,6 +173,14 @@
 
 		<h1 class="text-center linkedin-color"><i class="fa fa-linkedin-square" aria-hidden="true"></i> LinkedIn Bot Admin Interface</h1>
 
+		<div class="onOffBtn text-center">
+			<label class="switch">
+				<input id="on-off-btn" type="checkbox">
+				<span class="slider round"></span>
+			</label>
+			<h3 class="alert alert-info">The bot is <span id="bot-state">???</span></h3>
+		</div>
+
 		<div class="text-center">
 			<div class="column column-1">
 				<h6 class="title">Settings</h6>
@@ -171,7 +231,6 @@
 				</div>
 			</div>
 		</div>
-
 	</body>
 </html>
 
@@ -249,6 +308,10 @@ $(document).ready(function(){
 		});
 	}
 
+	$('#on-off-btn').click(function(){
+		post({'action': 'changeBotState', 'state': $(this).prop('checked')?1:0});
+		$('#bot-state').text($(this).prop('checked')?'On':'Off');
+	});
 	$('#send-msg').click(function(){
 		if($('#answer-conv-msg' != '')){
 			post({'action': 'sendMsg', 'profile_id': $(this).attr('profile-id'), 'msg': $('#answer-conv-msg').val()});
@@ -265,7 +328,7 @@ $(document).ready(function(){
 		post({'action': 'markRead', 'show': true, 'conv': $(this).attr('conv-id')});
 	});
 
-	$('.key-words-list i').on("click", function(){		// not worrking
+	$('.key-words-list i').on("click", function(){
 		var id = $(this).attr('id');
 		post({'action': 'delKeyWord', 'id': id}, function(resp){
 			$('i[id="'+id+'"]').parent().remove();
@@ -288,8 +351,15 @@ $(document).ready(function(){
 		}
 	});
 
+	// bot on off
+	post({'action': 'isOn'}, function(resp){
+		$('#on-off-btn').prop('checked', resp.isOn);
+		$('#bot-state').text(resp.isOn?'On':'Off');
+	});
+
 	// default-msg
 	post({'action': 'getDefaultMsg'}, function(resp){
+		$('#default-msg').val(resp.defaultMsg);
 		$('#default-msg').val(resp.defaultMsg);
 	})
 

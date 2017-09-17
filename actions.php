@@ -10,6 +10,15 @@
 		$json['success'] = false;
 		exit(json_encode($json));
 	}
+	// ON OFF
+	else if($_POST['action'] == 'isOn'){
+		$json['showMsg'] = false;
+		$json['isOn'] = getIsOn();
+	}
+	else if($_POST['action'] == 'changeBotState'){
+		$json['msg'] = 'The bot is now '.($_POST['state']==1?'On':'Off');
+		setIsOn($_POST['state']?1:0);
+	}
 	// KEY WORDS
 	else if($_POST['action'] == 'saveKeyWord'){
 		saveKeyWord($_POST['val']);
