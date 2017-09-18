@@ -283,7 +283,6 @@ $(document).ready(function(){
 		$('.conversation .conv-msg, #conv-user-name').html('<i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
 		$('#conv-user-job').html('');
 		post({'action': 'randomUnreadConv'}, function(resp){
-			console.log(resp);	
 			$('.conversation .conv-msg').html('');
 			var msgs = $.parseJSON(resp.conv);
 
@@ -322,8 +321,10 @@ $(document).ready(function(){
 			$('#nbUnreadConv').text(resp.value);
 			if(resp.value != 0){
 				getRandomUnreadConversation();
+				$('#send-msg, #mark-read').prop('disabled', false);
 			}else{
 				$('.conversation .conv-msg, #conv-user-name, #conv-user-job').html('No conversation');
+				$('#send-msg, #mark-read').prop('disabled', true);
 			}
 		});
 	}
@@ -360,7 +361,7 @@ $(document).ready(function(){
 			saveKeyWord();
 		}
 	});
-	$('#random-conv').click(getRandomUnreadConversation);
+	$('#random-conv').click(getNumberUnreadConv);
 
 	$('#save-default-msg').click(function(){
 		if($('#default-msg').val() != ''){

@@ -147,7 +147,8 @@
 			$headers = $this->getHeaders();
 
 			//saving in DB
-			saveConnectSent($profile_id);
+			if($check_in_db)
+				saveConnectSent($profile_id);
 
 			return $this->page('voyager/api/growth/normInvitations', $payload, $headers, false, false);
 		}
@@ -340,7 +341,7 @@
 
 		public function getBotDetected(){
 			$content = $this->page();	// try to acces home page and see if redirection
-			if(strpos($content, 'robots') !== false){	// robots detected!
+			if(strpos($content, 'login') !== false){	// robots detected!
 				return true;
 			}
 			return false;

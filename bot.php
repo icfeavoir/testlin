@@ -7,7 +7,7 @@
     	if($time != null){
     		sleep($time);
     	}else{
-	    	$max_time_sleep = 5;/	/seconds
+	    	$max_time_sleep = 5 //seconds
 	    	sleep($time||rand(1, $max_time_sleep));
 	    }
     }
@@ -19,34 +19,37 @@
 
     while(true){
 	    if(getIsOn()){
-	    	    $key_words_list = getKeyWords();
-	    	    // CONNECT
-	    	    
-	    	    $key_words_count %= count($key_words_list);
-	    	    $key_word = $key_words_list[$key_words_count]['key_word'];
-	    	    $key_words_count++;
-	    	    $page = 1;
-	    	    // search people with this key word
-	    	    do{
-	    	    	$result = $li->search_to_array($key_word, $page);
-	    	    	$page++;
-	    	    	// sending connnect request if not already sent
-	    	    	foreach ($result as $profile_id) {
-	    	    		// $li->connect_to($profile_id);
-	    	    		echo $key_word.' > '.$page.' '.$profile_id.' ---------------------------';
-	    	    		do_sleep();
-	    	    	}
-	    	    	do_sleep();
-	    	    }while(!empty($result));
+    		if($li->getBotDetected()){
+    			do_sleep(172800);	// if bot detected, sleep 48 hours
+    			$li = new Linkedin(USERNAME, PASSWORD);
+    		}
+    	    $key_words_list = getKeyWords();
+    	    // CONNECT
+    	    
+    	    $key_words_count %= count($key_words_list);
+    	    $key_word = $key_words_list[$key_words_count]['key_word'];
+    	    $key_words_count++;
+    	    $page = 1;
+    	    // search people with this key word
+    	    do{
+    	    	$result = $li->search_to_array($key_word, $page);
+    	    	$page++;
+    	    	// sending connnect request if not already sent
+    	    	foreach ($result as $profile_id) {
+    	    		$li->connect_to($profile_id);
+    	    		do_sleep();
+    	    	}
+    	    	do_sleep();
+    	    }while(!empty($result));
 
-	    	    // NEW CONNECTIONS
-	    	    
-	    		$newConnections = $li->checkNewConnections();
-	    		foreach ($newConnections as $key => $profile_id) {
-	    			// send msg to new connections
-	    			$li->send_msg($profile_id, getDefaultMsg()['msg']);
-	    			do_sleep();
-	    		}
+    	    // NEW CONNECTIONS
+    	    
+    		$newConnections = $li->checkNewConnections();
+    		foreach ($newConnections as $key => $profile_id) {
+    			// send msg to new connections
+    			$li->send_msg($profile_id, getDefaultMsg()['msg']);
+    			do_sleep();
+    		}
 	    }else{
 	    	do_sleep(30);
 	    }
@@ -71,10 +74,5 @@
 
 		1. check for last connections accepted
 		2. send msg to new connections
-		====
-
-		1. check for last connections asked
-		2. accept connect
-		2. send msg
 		====
     */
