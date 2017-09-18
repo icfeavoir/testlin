@@ -183,7 +183,7 @@
 		global $db;
 		$statement = $db->prepare('SELECT * FROM key_word_list');
 		$statement->execute();
-		return $statement;
+		return $statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 
 	/**

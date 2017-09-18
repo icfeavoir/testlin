@@ -20,6 +20,10 @@
 		setIsOn($_POST['state']?1:0);
 	}
 	// KEY WORDS
+	else if($_POST['action'] == 'getKeyWords'){
+		$json['showMsg'] = false;
+		$json['keyWords'] = getKeyWords();
+	}
 	else if($_POST['action'] == 'saveKeyWord'){
 		saveKeyWord($_POST['val']);
 		$json['msg'] = 'New key word saved';
@@ -35,7 +39,7 @@
 		$func = $_POST['function'];
 		$json['value'] = count($func());
 	}
-	else if($_POST['action'] == 'unreadConv'){
+	else if($_POST['action'] == 'nbUnreadConv'){
 		$json['showMsg'] = false;
 		$json['value'] = count(Linkedin::noInst()->getUnreadConversations());
 	}
@@ -48,11 +52,15 @@
     	$conv = $unread[rand(0, count($unread)-1)];
     	//then all msgs frome this conv
     	$msgs = Linkedin::noInst()->getAllMsg($conv);
-    	// $msgs = explode('delimiter', string)
 
     	$json['showMsg'] = false;
     	$json['conv'] = json_encode($msgs);
-    	$json['conv_id'] = $conv;
+    	$json['conv_id'] = json_encode($conv);
+	}
+	//USER INFOS
+	else if($_POST['action'] == 'getUserInformations'){
+		$json['showMsg'] = false;
+		$json['data'] = Linkedin::noInst()->getUserInformations($_POST['profile_id']);
 	}
 	//MARK AS READ
 	else if($_POST['action'] == 'markRead'){

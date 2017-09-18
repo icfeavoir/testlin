@@ -78,7 +78,7 @@
 		*
 		* @return string The content of the page
 		*/
-		public function page($page = '', $postdata = array(), $headers = array(), $data_to_string = true, $urlReplace = false){
+		public function page($page = 'nhome', $postdata = array(), $headers = array(), $data_to_string = true, $urlReplace = false){
 
 			while($page[0] === '/')
 				$page = substr($page, 1);
@@ -120,7 +120,7 @@
 		    return $content;
 		}
 
-		public function show_page($page = '', $postdata = array(), $headers = array(), $data_to_string = true){
+		public function show_page($page = 'nhome', $postdata = array(), $headers = array(), $data_to_string = true){
 			$page = $this->page($page, $postdata, $headers, $data_to_string, true);
 			echo $page;
 			return $page;
@@ -144,13 +144,7 @@
 			// sending invitation to profileId account!
 			$payload = '{"trackingId":"'.$trackingId.'","invitations":[],"excludeInvitations":[],"invitee":{"com.linkedin.voyager.growth.invitation.InviteeProfile":{"profileId":"'.$profile_id.'"}}}';
 
-			$cookies = file_get_contents('cookie.txt');	//all cookies
-			$cookie = $this->fetch_value($cookies, "JSESSIONID\t\"ajax:", "\"\n");	// the one we want
-			$headers = array(
-			    'origin: https://www.linkedin.com',
-			    "cookie: JSESSIONID='ajax:$cookie';",
-			    "csrf-token: ajax:$cookie",
-			);
+			$headers = $this->getHeaders();
 
 			//saving in DB
 			saveConnectSent($profile_id);
@@ -196,18 +190,6 @@
 			return $search_result;
 		}
 
-		public function search_all_to_array($search, $tab = 'people'){
-			$page = 1;
-			$all_search_result = [];
-			do{
-				$search_result = $this->search_to_array($search, $page, $tab);
-				$all_search_result = array_merge($all_search_result, $search_result);
-				$page++;
-			}while(!empty($search_result));
-
-			return $all_search_result;
-		}
-
 		public function send_msg($profile_id, $msg){
 			// we have to delete every slashes (/)
 			while($profile_id[0] === '/')
@@ -240,29 +222,30 @@
 
 		public function checkNewConnections(){
 			$headers = $this->getHeaders();
+			$run = true;
 
 			$count = 0;
 			$newConnections = [];
 			$notFound = 50;
-			while(true){
+			while($run){
 				$connection = $this->page('voyager/api/relationships/connections?count=1&sortType=RECENTLY_ADDED&start='.$count, [], $headers);
 				$id = $this->fetch_value($connection, 'miniProfile:', '"');
 
 				if($notFound > 50){	// to save all the first time this function is called -> if 50 null following, means you got all!
-					break;
+					$run = false;
 				}
 
 				if($id == null){
 					$notFound++;
 				}else{
-					$notFound = 0;	// if not following, go back to 0.
+					$notFound = 0;	// if we find one, go back to 0 for notFound.
 				}
 
-				if(isConnectedTo($id)===false){		// not connected so saving it
+				if(isConnectedTo($id)===false){		// connected with but not saved yet in DB --> new connections
 					saveConnectedTo($id);
 					array_push($newConnections, $id);
-				}elseif($id != null){	// already saved (and not a bug) = last time this function ran, it stopped at this id.
-					break;
+				}else if(isConnectedTo($id)!==false && $id != null){	// already saved (and not a bug) = last time this function ran, it stopped at this id
+					$run = false;
 				}
 				$count++;
 			}
@@ -299,22 +282,26 @@
 			
 			$msgs = explode('createdAt":', $content);
 			unset($msgs[0]);
+    		
+    		$replaces   = array("\r\n", "\n", "\r");
+
 			$msg_list = array(); $memory = array();
 			$profile_id = $this->getIdByConversation($conv);
-			$userName = '';
+			$user = '';
 			foreach ($msgs as $msg) {
 				$timelinkedin = explode(',', $msg)[0];
 				if(!in_array($timelinkedin, $memory)){
 					array_push($memory, $timelinkedin);
 					$date = ''.date('Y-m-d H:i:s', $this->linkedinDateToTimestamp($timelinkedin));
-					$msg_text = nl2br($this->fetch_value($msg, 'body":"', '",'));
+					$msg_text = preg_replace('#(\\\r|\\\r\\\n|\\\n)#', '<br/>', $this->fetch_value($msg, 'body":"', '",'));
 					$msg_id = explode(',', $this->fetch_value($msg, 'urn:li:fs_event:(', ')'))[1];
 					$authorId = $this->fetch_value($msg, 'urn:li:fs_miniProfile:', '"');
-					if($authorId != $this->_myProfileId && $userName == ''){	// just once
-						$userName = implode(' ', $this->getUserInformations($authorId));
+					if($authorId != $this->_myProfileId && $user == ''){	// just once
+						$user = $this->getUserInformations($authorId);
+						$userName = $user['firstName'].' '.$user['lastName'];
 					}
 					$authorId = $authorId==$this->_myProfileId?'bot':$userName;
-					array_push($msg_list, array('profile_id'=>$profile_id,'by'=> $authorId, 'date'=>$date, 'msg'=>nl2br($msg_text), 'msg_id'=>$msg_id));
+					array_push($msg_list, array('profile_id'=>$profile_id, 'by'=> $authorId, 'date'=>$date, 'msg'=>nl2br($msg_text), 'msg_id'=>$msg_id));
 				}
 			}
 			return $msg_list;
@@ -324,7 +311,7 @@
 			$profile = $this->page('in/'.$profile_id.'/');
 			$content = explode('li:fs_profile:'.$profile_id, $profile);
 			unset($content[0]);
-			$firstName = ''; $lastName = '';
+			$firstName = ''; $lastName = ''; $job = '';
 			foreach ($content as $key=>$val) {
 				if($firstName == ''){
 					$firstName = $this->fetch_value($val, 'firstName&quot;:&quot;', '&quot;');
@@ -332,8 +319,11 @@
 				if($lastName == ''){
 					$lastName = $this->fetch_value($val, 'lastName&quot;:&quot;', '&quot;');
 				}
+				if($job == ''){
+					$job = $this->fetch_value($val, 'headline&quot;:&quot;', '&quot;');
+				}
 			}
-			return array('firstName'=>$firstName, 'lastName'=>$lastName);
+			return array('firstName'=>$firstName, 'lastName'=>$lastName, 'job'=>$job);
 		}
 
 		public function getIdByConversation($conv_id){
@@ -348,8 +338,15 @@
 			return $id;
 		}
 
+		public function getBotDetected(){
+			$content = $this->page();	// try to acces home page and see if redirection
+			if(strpos($content, 'robots') !== false){	// robots detected!
+				return true;
+			}
+			return false;
+		}
 
-		public function close_curl(){
+		public function close(){
 		    curl_close($this->_ch);
 		}
 

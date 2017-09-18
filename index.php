@@ -3,14 +3,8 @@
     require_once('const.php');
     require_once('db.php');
 
-    $li = new Linkedin(USERNAME, PASSWORD);
+    $li = new Linkedin();
 
-    $who = $li->search_to_array('fejhz fbqzejksbkjesdnvjkdbvjkqenvd vjzev qsjkvns jkvnejkn vjknvjqzenvjenvjk wdbj jksvjkbvzejhberhbl');
-    $li->connect_to($who[0]);
-    $li->close_curl();
+    print_r($li->getUnreadConversations());
 
-
-    // TODO : new connect request from other to bot?
-
-
-    
+    $li->close();    

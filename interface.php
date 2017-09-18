@@ -190,11 +190,6 @@
 					<button class="btn btn-sm btn-primary" type="button" id="saveKeyWord">Save key word</button>
 					<div class="key-words-list">
 						<ul>
-							<?php
-								foreach(getKeyWords() as $value) {
-									echo '<li class="alert-info"><span class="key-word-item">'.$value['key_word'].'</span><i class="fa fa-times-circle-o" aria-hidden="true" id='.$value['ID'].'></i></li>';
-								}
-							?>
 						</ul>
 					</div>
 					<br/>
@@ -204,8 +199,13 @@
 				</div>
 			</div>
 			<div class="column column-2 conversation">
-				<h6 class="title"><span id="nbUnreadConv">???</span> last unread conversations - <a id="random-conv">Another random unread conversation!</a></h6>
+				<h6 class="title"><span id="nbUnreadConv"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i></span> last unread conversations - <a id="random-conv">Another random unread conversation!</a></h6>
 				<div class="content">
+					<div class="infos-user alert-info">
+						<b id="conv-user-name"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i></b><br/>
+						<span id="conv-user-job"></span>
+					<hr/>
+					</div>
 					<div class="conv-msg">
 						
 					</div>
@@ -280,12 +280,14 @@ $(document).ready(function(){
 	}
 
 	function getRandomUnreadConversation(){
-		$('.conversation .conv-msg').html('<br/><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
+		$('.conversation .conv-msg, #conv-user-name').html('<i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
+		$('#conv-user-job').html('');
 		post({'action': 'randomUnreadConv'}, function(resp){
+			console.log(resp);	
 			$('.conversation .conv-msg').html('');
 			var msgs = $.parseJSON(resp.conv);
 
-			if(msgs[msgs.length-1].msg == ''){	// means something like (user just accepted you on LinkedIn, but not a msg)
+			if(msgs[msgs.length-1].msg == ''){	// not a msg (user just accepted you on LinkedIn, but not a msg)
 				getRandomUnreadConversation();
 				post({'action': 'markRead', 'conv': resp.conv_id});
 			}else{
@@ -296,7 +298,6 @@ $(document).ready(function(){
 						);
 					}
 				});
-
 				// scroll to bottom
 				$(".conv-msg").animate({ scrollTop: $('.conv-msg')[0].scrollHeight }, "slow");
 				// saving conv_id for answer
@@ -304,6 +305,25 @@ $(document).ready(function(){
 				$('#send-msg').attr('profile-id', ''+msgs[0].profile_id);
 				// mark as read btn
 				$('#mark-read').attr('conv-id', ''+resp.conv_id);
+
+
+				// get user informations (name & jobs)
+				post({'action': 'getUserInformations', 'profile_id': msgs[0].profile_id}, function(resp){
+					$('#conv-user-name').text(resp.data.firstName+' '+resp.data.lastName);
+					$('#conv-user-job').text(resp.data.job);
+				});
+			}
+		});
+	}
+
+	function getNumberUnreadConv(){
+		$('#nbUnreadConv').html('<i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
+		post({'action': 'nbUnreadConv'}, function(resp){
+			$('#nbUnreadConv').text(resp.value);
+			if(resp.value != 0){
+				getRandomUnreadConversation();
+			}else{
+				$('.conversation .conv-msg, #conv-user-name, #conv-user-job').html('No conversation');
 			}
 		});
 	}
@@ -324,16 +344,13 @@ $(document).ready(function(){
 		}
 	});
 	$('#mark-read').click(function(){
-		getRandomUnreadConversation();
-		post({'action': 'markRead', 'show': true, 'conv': $(this).attr('conv-id')});
-	});
-
-	$('.key-words-list i').on("click", function(){
-		var id = $(this).attr('id');
-		post({'action': 'delKeyWord', 'id': id}, function(resp){
-			$('i[id="'+id+'"]').parent().remove();
+		$('#nbUnreadConv, .conversation .conv-msg, #conv-user-name').html('<i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
+		$('#conv-user-job').html('');
+		post({'action': 'markRead', 'show': true, 'conv': $(this).attr('conv-id')}, function(r){
+			getNumberUnreadConv();
 		});
 	});
+
 	$('#saveKeyWord').click(function(){
 		saveKeyWord();
 	});
@@ -357,19 +374,29 @@ $(document).ready(function(){
 		$('#bot-state').text(resp.isOn?'On':'Off');
 	});
 
+	// key words
+	post({'action': 'getKeyWords'}, function(resp){
+		$.each(resp.keyWords, function(key, value){
+			$('.key-words-list ul').append('<li class="alert-info"><span class="key-word-item">'+value.key_word+'</span><i class="fa fa-times-circle-o" aria-hidden="true" id='+value.ID+'></i></li>');
+			// add the click listener to the new <i>
+			$('i[id="'+value.ID+'"]').click(function(){
+				var id = $(this).attr('id');
+				post({'action': 'delKeyWord', 'id': id}, function(resp){
+					$('i[id="'+id+'"]').parent().remove();
+				});
+			})
+		});
+	});
+
 	// default-msg
 	post({'action': 'getDefaultMsg'}, function(resp){
 		$('#default-msg').val(resp.defaultMsg);
 		$('#default-msg').val(resp.defaultMsg);
 	})
 
-	// nb unread conv
-	post({'action': 'unreadConv'}, function(resp){
-		$('#nbUnreadConv').text(resp.value);
-	});
-	getRandomUnreadConversation();
+	getNumberUnreadConv();
 	// every  10 sec, we refresh stats and the first time too
 	refreshStats();
-	window.setInterval(refreshStats, 5000);
+	window.setInterval(refreshStats, 10000);
 });
 </script>
