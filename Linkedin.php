@@ -153,6 +153,28 @@
 			return $this->page('voyager/api/growth/normInvitations', $payload, $headers, false, false);
 		}
 
+		// to get invitations from other users
+		public function acceptLastConnectionRequest(){
+			$headers = $this->getHeaders();
+			$content = $this->page('voyager/api/relationships/invitationViews?count=1&includeInsights=true&q=receivedInvitation&start=0', [], $headers);
+			$connect = explode('fromMemberId', $content);
+			if(count($connect) > 0)
+				$connect = $connect[1];
+			else
+				return false;
+			$sharedSecret = $this->fetch_value($connect, 'sharedSecret":"', '"');
+			$invitationId = $this->fetch_value($connect, 'urn:li:invitation:', '"');
+			$profile_id = $this->fetch_value($connect, '":"', '"');
+
+			$payload = array(
+				"invitationSharedSecret" => "$sharedSecret",
+				"invitationId" => "$invitationId",
+			);
+			// accept connect
+			$this->page('voyager/api/relationships/invitations/'.$invitationId.'?action=accept', json_encode($payload), $headers, false, false);
+			return $profile_id;
+		}
+
 		public function search($search, $page = 1, $tab = 'people'){
 			if(!in_array($tab, array('index', 'people', 'jobs', 'companies', 'groups', 'school')))
 				exit('This tab doesn\'t exist.');

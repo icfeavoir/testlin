@@ -119,6 +119,7 @@
 			}
 			.ajax-response{
 				position: fixed;
+				z-index: 1;
 				width: 50%;
 				border-radius: 10px;
 				left: 25%;

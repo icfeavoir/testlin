@@ -7,8 +7,8 @@
     	if($time != null){
     		sleep($time);
     	}else{
-	    	$max_time_sleep = 5 //seconds
-	    	sleep($time||rand(1, $max_time_sleep));
+	    	$max_time_sleep = 30; //seconds
+	    	sleep(rand(1, $max_time_sleep));
 	    }
     }
 
@@ -23,9 +23,9 @@
     			do_sleep(172800);	// if bot detected, sleep 48 hours
     			$li = new Linkedin(USERNAME, PASSWORD);
     		}
+            
     	    $key_words_list = getKeyWords();
     	    // CONNECT
-    	    
     	    $key_words_count %= count($key_words_list);
     	    $key_word = $key_words_list[$key_words_count]['key_word'];
     	    $key_words_count++;
@@ -41,9 +41,12 @@
     	    	}
     	    	do_sleep();
     	    }while(!empty($result));
-
+            
     	    // NEW CONNECTIONS
-    	    
+            // accept new connections
+            $li->acceptLastConnectionRequest();
+
+            //send msg to new connections    	    
     		$newConnections = $li->checkNewConnections();
     		foreach ($newConnections as $key => $profile_id) {
     			// send msg to new connections
@@ -56,8 +59,6 @@
     }
 
     $li->close();
-
-
 
     /*
 		ALGO
