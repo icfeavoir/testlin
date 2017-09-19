@@ -158,10 +158,10 @@
 			$headers = $this->getHeaders();
 			$content = $this->page('voyager/api/relationships/invitationViews?count=1&includeInsights=true&q=receivedInvitation&start=0', [], $headers);
 			$connect = explode('fromMemberId', $content);
-			if(count($connect) > 0)
+			if(count($connect) > 1)
 				$connect = $connect[1];
 			else
-				return false;
+				return null;
 			$sharedSecret = $this->fetch_value($connect, 'sharedSecret":"', '"');
 			$invitationId = $this->fetch_value($connect, 'urn:li:invitation:', '"');
 			$profile_id = $this->fetch_value($connect, '":"', '"');
@@ -172,6 +172,7 @@
 			);
 			// accept connect
 			$this->page('voyager/api/relationships/invitations/'.$invitationId.'?action=accept', json_encode($payload), $headers, false, false);
+			saveConnectedTo($profile_id);
 			return $profile_id;
 		}
 

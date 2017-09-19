@@ -43,11 +43,12 @@
     	    }while(!empty($result));
             
     	    // NEW CONNECTIONS
-            // accept new connections
-            $li->acceptLastConnectionRequest();
-
-            //send msg to new connections    	    
+            //check and save new connections  
     		$newConnections = $li->checkNewConnections();
+            // accept connection requests
+            if($new = $li->acceptLastConnectionRequest())   // will add if not null -> new connection
+                array_push($newConnections, $new);
+            //send msg to new connections
     		foreach ($newConnections as $key => $profile_id) {
     			// send msg to new connections
     			$li->send_msg($profile_id, getDefaultMsg()['msg']);
@@ -62,18 +63,22 @@
 
     /*
 		ALGO
+        ====
 
 		check if linkedin disconnect the bot 
 			NO -> continue
 			YES -> wait for 2 days!
-		=====
+		---------------------------------------
 
 		1. Key words
 		2. search_to_array()
 		3. connect_to (if not yet of course)
-		=====
+		---------------------------------------
+
+        1. Accept new connection request
+        ---------------------------------------
 
 		1. check for last connections accepted
 		2. send msg to new connections
-		====
+		---------------------------------------
     */

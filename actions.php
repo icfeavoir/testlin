@@ -49,7 +49,6 @@
 		// !!! [IMPORTANT] : we do not instantiate a new Linkedin --> means that this is in the same directory than the bot for cookies !
     	$conv = $_POST['conv'];
     	//then all msgs frome this conv
-$conv='6315817753265651712';
     	
     	$msgs = Linkedin::noInst()->getAllMsg($conv);
     	$json['showMsg'] = false;

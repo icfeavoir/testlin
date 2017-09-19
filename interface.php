@@ -164,6 +164,11 @@
 			p.date{
 				font-weight: bold;
 			}
+
+			.stats-value{
+				color: black;
+				transition: color .5s;
+			}
 		</style>
 	</head>
 	<body>
@@ -275,19 +280,25 @@ $(document).ready(function(){
 		$('.stats-value').each(function(){
 			var value = $(this).attr('id');
 			post({'action': 'stats', 'function': value}, function(resp){
-				$('#'+value).text(resp.value);
+				var previousVal = $('#'+value).text();
+				if(previousVal == '???'){
+					$('#'+value).text(resp.value);
+				}else if(resp.value != previousVal){
+					$('#'+value).css({ color: 'red' });
+					$('#'+value).text(resp.value);
+					setTimeout(function(){$('#'+value).css({ color: 'black' });}, 1000);
+				}
 			});
 		});
 	}
 
+
 	function getMsgConversation(conv_id){
-		$('.conversation .conv-msg, #conv-user-name').html('<i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
-		$('#conv-user-job').html('');
 		post({'action': 'getMsgConv', 'conv': conv_id}, function(resp){
 			$('.conversation .conv-msg').html('');
 			var msgs = $.parseJSON(resp.msgs);
 
-			if(msgs[msgs.length-1].msg == '' && (msgs.length>1 && msgs[msgs.length-2] == '')){	// not a msg (user just accepted you on LinkedIn, but not a msg)
+			if(msgs[msgs.length-1].msg == '' && (msgs.length>1 && msgs[msgs.length-2] == '' && msgs[msgs.length-2].by != 'bot')){	// not a msg (user just accepted you on LinkedIn, but not a msg)
 				getUnreadConv();
 				post({'action': 'markRead', 'conv': conv_id});
 			}else{
@@ -317,7 +328,8 @@ $(document).ready(function(){
 	}
 
 	function getUnreadConv(){
-		$('#nbUnreadConv').html('<i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
+		$('#nbUnreadConv, .conversation .conv-msg, #conv-user-name').html('<i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
+		$('#conv-user-job').html('');
 		post({'action': 'unreadConv'}, function(resp){
 			var unreadConv = resp.unreadConv.substr(0, resp.unreadConv.length-1).substr(1).split(',');
 			$('#nbUnreadConv').text(unreadConv.length);
