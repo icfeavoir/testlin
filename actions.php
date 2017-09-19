@@ -39,23 +39,21 @@
 		$func = $_POST['function'];
 		$json['value'] = count($func());
 	}
-	else if($_POST['action'] == 'nbUnreadConv'){
+	else if($_POST['action'] == 'unreadConv'){
 		$json['showMsg'] = false;
-		$json['value'] = count(Linkedin::noInst()->getUnreadConversations());
+		$json['unreadConv'] = json_encode(Linkedin::noInst()->getUnreadConversations());
 	}
 	// RANDOM CONVERSATION
-	else if($_POST['action'] == 'randomUnreadConv'){
+	else if($_POST['action'] == 'getMsgConv'){
 		// first all unread conversation
 		// !!! [IMPORTANT] : we do not instantiate a new Linkedin --> means that this is in the same directory than the bot for cookies !
-    	$unread = Linkedin::noInst()->getUnreadConversations();
-    	// then select a random one
-    	$conv = $unread[rand(0, count($unread)-1)];
+    	$conv = $_POST['conv'];
     	//then all msgs frome this conv
+$conv='6315817753265651712';
+    	
     	$msgs = Linkedin::noInst()->getAllMsg($conv);
-
     	$json['showMsg'] = false;
-    	$json['conv'] = json_encode($msgs);
-    	$json['conv_id'] = json_encode($conv);
+    	$json['msgs'] = json_encode($msgs);
 	}
 	//USER INFOS
 	else if($_POST['action'] == 'getUserInformations'){

@@ -249,7 +249,7 @@
 
 			$count = 0;
 			$newConnections = [];
-			$notFound = 50;
+			$notFound = 25;
 			while($run){
 				$connection = $this->page('voyager/api/relationships/connections?count=1&sortType=RECENTLY_ADDED&start='.$count, [], $headers);
 				$id = $this->fetch_value($connection, 'miniProfile:', '"');

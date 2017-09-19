@@ -280,16 +280,16 @@ $(document).ready(function(){
 		});
 	}
 
-	function getRandomUnreadConversation(){
+	function getMsgConversation(conv_id){
 		$('.conversation .conv-msg, #conv-user-name').html('<i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
 		$('#conv-user-job').html('');
-		post({'action': 'randomUnreadConv'}, function(resp){
+		post({'action': 'getMsgConv', 'conv': conv_id}, function(resp){
 			$('.conversation .conv-msg').html('');
-			var msgs = $.parseJSON(resp.conv);
+			var msgs = $.parseJSON(resp.msgs);
 
-			if(msgs[msgs.length-1].msg == ''){	// not a msg (user just accepted you on LinkedIn, but not a msg)
-				getRandomUnreadConversation();
-				post({'action': 'markRead', 'conv': resp.conv_id});
+			if(msgs[msgs.length-1].msg == '' && (msgs.length>1 && msgs[msgs.length-2] == '')){	// not a msg (user just accepted you on LinkedIn, but not a msg)
+				getUnreadConv();
+				post({'action': 'markRead', 'conv': conv_id});
 			}else{
 				$.each(msgs, function(index, val){
 					if(val.msg != ''){
@@ -301,10 +301,10 @@ $(document).ready(function(){
 				// scroll to bottom
 				$(".conv-msg").animate({ scrollTop: $('.conv-msg')[0].scrollHeight }, "slow");
 				// saving conv_id for answer
-				$('#send-msg').attr('conv-id', ''+resp.conv_id);
+				$('#send-msg').attr('conv-id', ''+conv_id);
 				$('#send-msg').attr('profile-id', ''+msgs[0].profile_id);
 				// mark as read btn
-				$('#mark-read').attr('conv-id', ''+resp.conv_id);
+				$('#mark-read').attr('conv-id', ''+conv_id);
 
 
 				// get user informations (name & jobs)
@@ -316,12 +316,14 @@ $(document).ready(function(){
 		});
 	}
 
-	function getNumberUnreadConv(){
+	function getUnreadConv(){
 		$('#nbUnreadConv').html('<i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
-		post({'action': 'nbUnreadConv'}, function(resp){
-			$('#nbUnreadConv').text(resp.value);
-			if(resp.value != 0){
-				getRandomUnreadConversation();
+		post({'action': 'unreadConv'}, function(resp){
+			var unreadConv = resp.unreadConv.substr(0, resp.unreadConv.length-1).substr(1).split(',');
+			$('#nbUnreadConv').text(unreadConv.length);
+			if(unreadConv.length != 0){
+				var conv = unreadConv[Math.floor(Math.random()*unreadConv.length)];
+				getMsgConversation(conv);
 				$('#send-msg, #mark-read').prop('disabled', false);
 			}else{
 				$('.conversation .conv-msg, #conv-user-name, #conv-user-job').html('No conversation');
@@ -349,7 +351,7 @@ $(document).ready(function(){
 		$('#nbUnreadConv, .conversation .conv-msg, #conv-user-name').html('<i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
 		$('#conv-user-job').html('');
 		post({'action': 'markRead', 'show': true, 'conv': $(this).attr('conv-id')}, function(r){
-			getNumberUnreadConv();
+			getUnreadConv();
 		});
 	});
 
@@ -362,7 +364,7 @@ $(document).ready(function(){
 			saveKeyWord();
 		}
 	});
-	$('#random-conv').click(getNumberUnreadConv);
+	$('#random-conv').click(getUnreadConv);
 
 	$('#save-default-msg').click(function(){
 		if($('#default-msg').val() != ''){
@@ -396,7 +398,7 @@ $(document).ready(function(){
 		$('#default-msg').val(resp.defaultMsg);
 	})
 
-	getNumberUnreadConv();
+	getUnreadConv();
 	// every  10 sec, we refresh stats and the first time too
 	refreshStats();
 	window.setInterval(refreshStats, 10000);
