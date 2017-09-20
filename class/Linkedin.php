@@ -7,7 +7,6 @@
 		private $_username;
 		private $_password;
 		private $_myProfileId;
-		private $_myName;
 
 		public function __construct($user = null, $pass = null){
 			$this->_ch = curl_init();
@@ -16,10 +15,11 @@
 				$this->_password = $pass;
 
 				$this->login();
+				$this->_myProfileId = $this->fetch_value($this->page('in/'), 'miniProfile:', '&');
+				file_put_contents('id', $this->_myProfileId);
+			}else{
+				$this->_myProfileId = file_get_contents('id');
 			}
-			$this->_myProfileId = $this->fetch_value($this->page('in/'), 'miniProfile:', '&');
-			$this->_myName = $this->fetch_value($this->page('in/'), 'firstName&quot;:&quot;', '&');
-			$this->_myName .= ' '.$this->fetch_value($this->page('in/'), 'lastName&quot;:&quot;', '&');
 		}
 
 		public static function noInst(){
@@ -28,10 +28,10 @@
 
 		private function login(){
 			//DELETE PREVIOUS COOKIE FILE AND A NEW ONE
-		    if(!(is_file('cookie.txt'))){
-		        touch('cookie.txt');
+		    if(!(is_file(ROOTPATH.'/cookie.txt'))){
+		        touch(ROOTPATH.'/cookie.txt');
 		    }else{ 	// empty the file
-		    	$f = @fopen("cookie.txt", "r+");
+		    	$f = @fopen(ROOTPATH."/cookie.txt", "r+");
 		    	if ($f !== false) {
 		    	    ftruncate($f, 0);
 		    	    fclose($f);
@@ -66,6 +66,10 @@
 		    return $login;
 		}
 
+		public function getMyProfileId(){
+			return $this->_myProfileId;
+		}
+
 
 		/**
 		* Go to this LinkedIn page
@@ -91,8 +95,8 @@
 		    curl_setopt($this->_ch, CURLOPT_FOLLOWLOCATION, true);
 		    curl_setopt($this->_ch, CURLOPT_SSL_VERIFYPEER, false);
 		    curl_setopt($this->_ch, CURLOPT_SSL_VERIFYHOST, false);
-		    curl_setopt($this->_ch, CURLOPT_COOKIEJAR, realpath('cookie.txt'));
-		    curl_setopt($this->_ch, CURLOPT_COOKIEFILE, realpath('cookie.txt'));
+		    curl_setopt($this->_ch, CURLOPT_COOKIEJAR, realpath(ROOTPATH.'/cookie.txt'));
+		    curl_setopt($this->_ch, CURLOPT_COOKIEFILE, realpath(ROOTPATH.'/cookie.txt'));
 		    curl_setopt($this->_ch, CURLOPT_POST, false);
 		    curl_setopt($this->_ch, CURLOPT_HEADER, false);
 		    if(count($postdata) > 0){
@@ -120,13 +124,13 @@
 		    return $content;
 		}
 
-		public function show_page($page = 'nhome', $postdata = array(), $headers = array(), $data_to_string = true){
+		public function showPage($page = 'nhome', $postdata = array(), $headers = array(), $data_to_string = true){
 			$page = $this->page($page, $postdata, $headers, $data_to_string, true);
 			echo $page;
 			return $page;
 		}
 
-		public function connect_to($profile_id, $check_in_db = true){
+		public function connectTo($profile_id, $check_in_db = true){
 			if($profile_id === null){
 				return null;
 			}
@@ -214,7 +218,14 @@
 			return $search_result;
 		}
 
-		public function send_msg($profile_id, $msg){
+		public function sendMsg($profile_id, $msg){
+			if(is_array($msg)){	// if send template, to user with the getTemplate($id) function
+				$template = $msg['ID'];
+				$msg = $msg['msg'];
+			}else{
+				$template = null;
+			}
+
 			// we have to delete every slashes (/)
 			while($profile_id[0] === '/')
 				$profile_id = substr($profile_id, 1);
@@ -226,13 +237,16 @@
 
 			$sending = $this->page('voyager/api/messaging/conversations?action=create', $payload, $headers, false, false);
 			$infos = explode(',', $this->fetch_value($sending, 'urn:li:fs_event:(', ')'));
+			if(count($infos) < 2){	// conv not found
+				return;
+			}
 			$conv_id = $infos[0];
 			$msg_id = $infos[1];
-			// BUG HERE ?
+
 			$this->markConversationAsRead($conv_id);
 
 			//saving in DB
-			saveMsgSent($profile_id, $msg, $conv_id, $msg_id);
+			saveMsgSent($profile_id, $msg, $conv_id, $msg_id, $template);
 
 			return $sending;
 		}
@@ -276,6 +290,39 @@
 			return $newConnections;
 		}
 
+		/*
+			get one particular msg
+			check the previous msg and save it
+				-> if previous msg, 
+					-> check the msg id in msg_sent --> template?
+					-> check if Watson answered (new field isFromWatson [bool])
+
+			for every msgs, save the template ID if exists.
+		*/
+
+		// function getAllConversations(){	// to use verify carrefully, could be long...
+		// 	$headers = $this->getHeaders();
+		// 	$lastConv = $this->timestampToLinkedinDate(time());
+		// 	$allConversations = array();
+
+		// 	do{
+		// 		$content = $this->page('voyager/api/messaging/conversations?createdBefore='.$lastConv, [], $headers, false, false);
+		// 		$conversations = explode('urn:li:fs_event:(', $content);
+		// 		unset($conversations[0]);
+		// 		$conversation_list = array();
+		// 		foreach ($conversations as $conv) {
+		// 			if(!in_array(intval($conv), $conversation_list)){
+		// 				array_push($conversation_list, intval(explode(',', $conv)[0]));
+		// 				$dateConv = $this->fetch_value($conv, '"createdAt":', ',');
+		// 				if($dateConv != '')
+		// 					$lastConv = $dateConv;
+		// 			}
+		// 		}
+		// 		$allConversations = array_merge($allConversations, $conversation_list);
+		// 	}while(count($conversation_list) != 0);
+		// 	return $allConversations;
+		// }
+
 		function getUnreadConversations(){
 			$headers = $this->getHeaders();
 			array_push($headers, 'x-restli-protocol-version: 2.0.0');
@@ -288,7 +335,6 @@
 				if(!in_array(intval($conv), $conversation_list))
 					array_push($conversation_list, intval(explode(',', $conv)[0]));
 			}
-			// TODO? All unread ? Longer...
 			return $conversation_list;
 		}
 
@@ -375,7 +421,7 @@
 		}
 
 		private function getHeaders(){	// return the array of headers needed for actions (connect, sending msg, etc);
-			$cookies = file_get_contents('cookie.txt');	// all cookies
+			$cookies = file_get_contents(ROOTPATH.'/cookie.txt');	// all cookies
 			$cookie = $this->fetch_value($cookies, "JSESSIONID\t\"ajax:", "\"\n");	// the one we want
 
 			return array(

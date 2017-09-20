@@ -1,5 +1,6 @@
 <?php
-	require_once('Linkedin.php');
+    require_once('class/Linkedin.php');
+    require_once('class/Watson.php');
     require_once('const.php');
     require_once('db.php');
 
@@ -16,6 +17,7 @@
     $key_words_count = 0;
 
     $li = new Linkedin();
+    $watson = new Watson(WATSON_USERNAME, WATSON_PASSWORD, WATSON_CONVERSATION);
 
     while(true){
 	    if(getIsOn()){
@@ -25,7 +27,7 @@
     		}
             
     	    $key_words_list = getKeyWords();
-    	    // CONNECT
+    	    // SEND CONNECT
     	    $key_words_count %= count($key_words_list);
     	    $key_word = $key_words_list[$key_words_count]['key_word'];
     	    $key_words_count++;
@@ -51,14 +53,52 @@
             //send msg to new connections
     		foreach ($newConnections as $key => $profile_id) {
     			// send msg to new connections
-    			$li->send_msg($profile_id, getDefaultMsg()['msg']);
+    			$li->sendMsg($profile_id, getDefaultMsg()['msg']);
     			do_sleep();
     		}
+
+            // CHECK UNREAD CONVERSATION
+            //... watson to do here !
 	    }else{
 	    	do_sleep(30);
 	    }
     }
 
+    /* WATSON
+
+    $start = false;
+    $new = [];
+    while(getIsOn()){
+        if(!$start){
+            $new = $li->checkNewConnections();
+            do_sleep();
+        }
+
+        if(count($new) == 0){
+            do_sleep();
+        }else{
+            if(!$start){
+                $li->sendMsg($user, 'Hello!');
+                $start = true;
+                do_sleep();
+            }
+            $conv = $li->getUnreadConversations()[0];
+            $msgs = $li->getAllMsg($conv);
+            if(count($msgs) > 0){
+                $last = $msgs[count($msgs)-1];
+                if($last['by'] != 'bot'){
+                    $li->sendMsg($user, $watson->getResponse($watson->sendMsg($last['msg'])));
+                    $msgs = [];
+                }
+            }
+        }
+        do_sleep();
+    }
+
+    */
+    
+
+    $watson->close();
     $li->close();
 
     /*
@@ -78,7 +118,13 @@
         1. Accept new connection request
         ---------------------------------------
 
-		1. check for last connections accepted
-		2. send msg to new connections
-		---------------------------------------
+        1. check for last connections accepted
+        2. send msg to new connections
+        ---------------------------------------
+
+        1. get a random unread conversation
+        2. get the last message
+            -> answer it if Watson has an answer to give
+            -> else let the conversation unread
+        ---------------------------------------
     */

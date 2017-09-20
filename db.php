@@ -75,32 +75,24 @@
 	
 
 	/**
-	* Get all msg sent by the bot
+	* Get all msg sent sent by the bot
+	*
+	* @param ] string $user Only messages sent to this user
+	*
+	* @param ] int $template Only messages from this template
 	*
 	* @return Array with all msg
 	*/
-	function getAllMsgSent(){
+	function getMsgSent($profile_id='%%', $template='%%'){
 		global $db;
-		$statement = $db->prepare('SELECT * FROM msg_sent ORDER BY ID');
-		$statement->execute();
+		$profile_id = empty($profile_id)?'%%':$profile_id;
+		$template = empty($template)?'%%':$template;
+		$statement = $db->prepare('SELECT * FROM msg_sent WHERE profile_id LIKE :profile_id AND template_msg LIKE :template ORDER BY ID');
+		$statement->execute(array(':profile_id'=>$profile_id, ':template'=>$template));
 		return $statement->fetchAll();
 	}
 
-	/**
-	* Check if the bot already sent a msg to this user
-	*
-	* @param string $profile_id The id of the user to check
-	*
-	* @return false if msg never send, the query response else
-	*/
-	function isMsgSentUser($profile_id){
-		global $db;
-		$statement = $db->prepare('SELECT * FROM msg_sent WHERE profile_id= :profile_id');
-		$statement->execute(array(':profile_id' => $profile_id));
-		if($statement->rowCount() == 0)
-			return false;
-		return $statement->fetch();
-	}
+
 	/**
 	* Check if the bot already sent a msg with a specific ID in a specific conversation
 	*
@@ -124,10 +116,29 @@
 	* @param string $pmsg The msg
 	*
 	*/
-	function saveMsgSent($profile_id, $msg, $conv, $msg_id){
+	function saveMsgSent($profile_id, $msg, $conv, $msg_id, $template=0){
 		global $db;
-		$statement = $db->prepare('INSERT INTO msg_sent (profile_id, msg, conv_id, msg_id) VALUES (:profile_id, :msg, :conv, :msg_id)');
-		$statement->execute(array(':profile_id' => $profile_id, ':msg' => $msg, ':conv' => $conv, ':msg_id' => $msg_id));
+		$statement = $db->prepare('INSERT INTO msg_sent (profile_id, msg, conv_id, msg_id, template_msg) VALUES (:profile_id, :msg, :conv, :msg_id, :template)');
+		$statement->execute(array(':profile_id' => $profile_id, ':msg' => $msg, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template));
+	}
+
+
+	/**
+	* Get all msg sent received by the bot
+	*
+	* @param ] string $user Only messages from this user
+	*
+	* @param ] int $template Only messages from this template
+	*
+	* @return Array with all msg
+	*/
+	function getMsgReceived($profile_id='%%', $template='%%'){
+		global $db;
+		$profile_id = empty($profile_id)?'%%':$profile_id;
+		$template = empty($template)?'%%':$template;
+		$statement = $db->prepare('SELECT * FROM msg_received WHERE profile_id LIKE :profile_id AND template_msg LIKE :template ORDER BY ID');
+		$statement->execute(array(':profile_id'=>$profile_id, ':template'=>$template));
+		return $statement->fetchAll();
 	}
 
 	
@@ -219,7 +230,7 @@
 	*/
 	function saveDefaultMsg($msg){
 		global $db;
-		$statement = $db->prepare('UPDATE default_msg SET msg = :msg');
+		$statement = $db->prepare('INSERT INTO msg_template SET msg = :msg');
 		$statement->execute(array(':msg' => $msg));
 	}
 
@@ -230,7 +241,50 @@
 	*/
 	function getDefaultMsg(){
 		global $db;
-		$statement = $db->prepare('SELECT msg FROM default_msg LIMIT 1');
+		$statement = $db->prepare('SELECT msg FROM msg_template ORDER BY ID DESC LIMIT 1');
 		$statement->execute();
 		return $statement->fetch();
+	}
+
+	/**
+	* Get all templates (recent to older)
+	*
+	* @return array All templates
+	*/
+	function getAllTemplates(){
+		global $db;
+		$statement = $db->prepare('SELECT ID, msg, DATE_FORMAT(created, "%Y-%m-%e") AS created FROM msg_template ORDER BY ID DESC');
+		$statement->execute();
+		return $statement->fetchAll(PDO::FETCH_ASSOC);
+	}
+
+	/**
+	* Get one template
+	*
+	* @param int The ID of the template
+	*
+	* @return array The template
+	*/
+	function getTemplate($id){
+		global $db;
+		$statement = $db->prepare('SELECT ID, msg, DATE_FORMAT(created, "%Y-%m-%e") AS created FROM msg_template WHERE ID=:id');
+		$statement->execute(array(':id'=>$id));
+		return $statement->fetch(PDO::FETCH_ASSOC);
+	}
+
+	// GENERAL FUNCTIONS
+
+	/**
+	* Delete one item in one table
+	*
+	* @param string The table name
+	* @param int The ID to delete
+	*
+	* @return bool Item deleted or not
+	*/
+	function delete($table, $id){
+		global $db;
+		$statement = $db->prepare('DELETE FROM '.$table.' WHERE ID=:id');
+		$statement->execute(array(':id'=>$id));
+		return $statement->rowCount()==1;
 	}

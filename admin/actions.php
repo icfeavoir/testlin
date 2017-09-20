@@ -1,7 +1,7 @@
 <?php
-	require_once('const.php');
-	require_once('db.php');
-	require_once('Linkedin.php');
+	require_once('../const.php');
+	require_once('../db.php');
+	require_once('../class/Linkedin.php');
 
 	// [success=>bool, response=>array]
 	$json = array('success'=>true, 'msg'=>'Nothing appened', 'showMsg'=>true);
@@ -10,6 +10,16 @@
 		$json['success'] = false;
 		exit(json_encode($json));
 	}
+
+	// GENERAL
+	else if($_POST['action'] == 'delete'){
+		$check = delete($_POST['table'], $_POST['id']);
+		$json['msg'] = $check?'Item deleted':'An error occured';
+		$json['success'] = $check;
+	}
+
+	// INDEX PAGE
+
 	// ON OFF
 	else if($_POST['action'] == 'isOn'){
 		$json['showMsg'] = false;
@@ -78,6 +88,34 @@
 	else if($_POST['action'] == 'setDefaultMsg'){
 		$json['msg'] = 'Default message updated!';
 		saveDefaultMsg($_POST['msg']);
+	}
+
+	// --------------------- TEMPLATE MANAGER -----------------------
+
+	else if($_POST['action'] == 'getAllTemplates'){
+		$json['showMsg'] = false;
+		$json['templates'] = getAllTemplates();
+	}
+
+	// --------------------- UNIQUE TEMPLATE MANAGER -----------------------
+
+	else if($_POST['action'] == 'getMessage'){
+		$json['showMsg'] = false;
+		$json['value'] = getTemplate($_POST['template'])['msg'];
+	}
+	else if($_POST['action'] == 'getNumberSent'){
+		$json['showMsg'] = false;
+		$number = count(getMsgSent(null, $_POST['template']));
+		$total = count(getMsgSent());
+		$percent = $total!=0?round($number*100/$total):0;
+		$json['value'] = $number.' ('.$percent.'%)';
+	}
+	else if($_POST['action'] == 'getNumberReceived'){
+		$json['showMsg'] = false;
+		$number = count(getMsgReceived(null, $_POST['template']));
+		$total = count(getMsgReceived());
+		$percent = $total!=0?round($number*100/$total):0;
+		$json['value'] = $number.' ('.$percent.'%)';
 	}
 
 	exit(json_encode($json));
