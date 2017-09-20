@@ -218,12 +218,12 @@
 			return $search_result;
 		}
 
-		public function sendMsg($profile_id, $msg){
+		public function sendMsg($profile_id, $msg, $watson=0){
 			if(is_array($msg)){	// if send template, to user with the getTemplate($id) function
 				$template = $msg['ID'];
 				$msg = $msg['msg'];
 			}else{
-				$template = null;
+				$template = 0;
 			}
 
 			// we have to delete every slashes (/)
@@ -246,7 +246,7 @@
 			$this->markConversationAsRead($conv_id);
 
 			//saving in DB
-			saveMsgSent($profile_id, $msg, $conv_id, $msg_id, $template);
+			saveMsgSent($profile_id, $msg, $conv_id, $msg_id, $template, $watson);
 
 			return $sending;
 		}

@@ -116,10 +116,10 @@
 	* @param string $pmsg The msg
 	*
 	*/
-	function saveMsgSent($profile_id, $msg, $conv, $msg_id, $template=0){
+	function saveMsgSent($profile_id, $msg, $conv, $msg_id, $template=0, $watson=0){
 		global $db;
-		$statement = $db->prepare('INSERT INTO msg_sent (profile_id, msg, conv_id, msg_id, template_msg) VALUES (:profile_id, :msg, :conv, :msg_id, :template)');
-		$statement->execute(array(':profile_id' => $profile_id, ':msg' => $msg, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template));
+		$statement = $db->prepare('INSERT INTO msg_sent (profile_id, conv_id, msg_id, template_msg, msg, watson) VALUES (:profile_id, :conv, :msg_id, :template, :msg, :watson)');
+		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson'=>$watson));
 	}
 
 
@@ -139,6 +139,21 @@
 		$statement = $db->prepare('SELECT * FROM msg_received WHERE profile_id LIKE :profile_id AND template_msg LIKE :template ORDER BY ID');
 		$statement->execute(array(':profile_id'=>$profile_id, ':template'=>$template));
 		return $statement->fetchAll();
+	}
+	/**
+	* Save the msg received by the bot
+	*
+	* @param string $profile_id The id of the user to check
+	* @param string $pmsg The msg
+	* @param string $conv The conversation ID (LinkedIn)
+	* @param string $msg_id The msg ID (LinkedIn)
+	* @param int $template (optional) The ID of the msg template used
+	*
+	*/
+	function saveMsgReceived($profile_id, $msg, $conv, $msg_id, $template=0){
+		global $db;
+		$statement = $db->prepare('INSERT INTO msg_sent (profile_id, conv_id, msg_id, template_msg, msg) VALUES (:profile_id, :conv, :msg_id, :template, :msg)');
+		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg));
 	}
 
 	

@@ -34,6 +34,11 @@ class Watson{
 		return $resp->output->text[0];
 	}
 
+	public function chat($msg){
+		$answer = $this->getResponse($this->sendMsg($msg));
+		return $answer!=''?$answer:false;
+	}
+
 	public function execute(){
 		return curl_exec($this->_ch);
 	}

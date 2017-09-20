@@ -2,7 +2,7 @@ CREATE DATABASE IF NOT EXISTS linkedinBot;
 use linkedinBot;
 
 CREATE TABLE IF NOT EXISTS `bot_on_off` (
-	`isOn` bit NOT NULL,
+	`isOn` boolean NOT NULL,
 	`last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS `msg_sent` (
 	`msg_id` varchar(255) NOT NULL,
 	`template_msg` int NOT NULL DEFAULT 0,
 	`msg` varchar(255) NOT NULL,
+	`watson` boolean NOT NULL DEFAULT false,
 	`date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -49,6 +50,6 @@ CREATE TABLE IF NOT EXISTS `msg_template` (
 );
 
 
--- DEFAULT VALUES
+-- DEFAULT VALUES IF NOT ALREADY INSERTED
 INSERT INTO bot_on_off (isOn) SELECT 0 WHERE NOT EXISTS (SELECT * FROM msg_template);
 INSERT INTO msg_template (msg) SELECT 'default' WHERE NOT EXISTS (SELECT * FROM msg_template);
