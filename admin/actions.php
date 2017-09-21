@@ -55,11 +55,10 @@
 	}
 	// RANDOM CONVERSATION
 	else if($_POST['action'] == 'getMsgConv'){
+//TODO : get from DB and not from LinkedIn?		
 		// first all unread conversation
-		// !!! [IMPORTANT] : we do not instantiate a new Linkedin --> means that this is in the same directory than the bot for cookies !
     	$conv = $_POST['conv'];
     	//then all msgs frome this conv
-    	
     	$msgs = Linkedin::noInst()->getAllMsg($conv);
     	$json['showMsg'] = false;
     	$json['msgs'] = json_encode($msgs);
@@ -77,7 +76,7 @@
 	}
 	// SEND MESSAGE
 	else if($_POST['action'] == 'sendMsg'){
-		$msg = Linkedin::noInst()->send_msg($_POST['profile_id'], $_POST['msg']);
+		$msg = Linkedin::noInst()->sendMsg($_POST['profile_id'], $_POST['msg']);
 		$json['msg'] = 'Your msg has been sent!';
 	}
 	//DEFAULT MSG
@@ -105,14 +104,14 @@
 	}
 	else if($_POST['action'] == 'getNumberSent'){
 		$json['showMsg'] = false;
-		$number = count(getMsgSent(null, $_POST['template']));
+		$number = count(getMsgSent(null, null, null, $_POST['template']));
 		$total = count(getMsgSent());
 		$percent = $total!=0?round($number*100/$total):0;
 		$json['value'] = $number.' ('.$percent.'%)';
 	}
 	else if($_POST['action'] == 'getNumberReceived'){
 		$json['showMsg'] = false;
-		$number = count(getMsgReceived(null, $_POST['template']));
+		$number = count(getMsgReceived(null, null, null, $_POST['template'])??[]);
 		$total = count(getMsgReceived());
 		$percent = $total!=0?round($number*100/$total):0;
 		$json['value'] = $number.' ('.$percent.'%)';

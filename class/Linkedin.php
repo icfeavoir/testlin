@@ -18,7 +18,7 @@
 				$this->_myProfileId = $this->fetch_value($this->page('in/'), 'miniProfile:', '&');
 				file_put_contents('id', $this->_myProfileId);
 			}else{
-				$this->_myProfileId = file_get_contents('id');
+				$this->_myProfileId = file_get_contents(ROOTPATH.'/id');
 			}
 		}
 
@@ -246,9 +246,43 @@
 			$this->markConversationAsRead($conv_id);
 
 			//saving in DB
-			saveMsgSent($profile_id, $msg, $conv_id, $msg_id, $template, $watson);
+			saveMsgSent($profile_id, $msg, $conv_id, $msg_id, time(), $template, $watson);
 
 			return $sending;
+		}
+
+
+		/**
+		* @param string $msg A message formated from getAllMsg()
+		*/
+		public function receiveMsg($msg){
+			// check if not saved yet and not msg sent
+			if(getMsgReceived(null, null, $msg['msg_id']) == null && $msg['by']!='bot'){
+				// previous msg from the bot ?
+				$prev = getLastMsg($msg['conv_id']);
+				$template = $prev['template_msg']??0;
+				$watson = $prev['watson']??0;
+				saveMsgReceived($msg['profile_id'], $msg['msg'], $msg['conv_id'], $msg['msg_id'], $msg['date'], $template, $watson);
+			}
+		}
+
+
+		/**
+		* Save a msg, whatever if it's the bot or not
+		*
+		* @param string $msg A message formated from getAllMsg()
+		*/
+		public function saveMsg($msg){
+			if($msg['by'] == 'bot'){
+				// already saved
+				if(getMsgSent(null, null, $msg['msg_id']) != null)
+					return;
+				// not template or Watson if we just discover this msg sent by the bot
+				saveMsgSent($msg['profile_id'], $msg['msg'], $msg['conv_id'], $msg['msg_id'], $msg['date']);
+			}else{
+				$this->receiveMsg($msg);
+			}
+
 		}
 
 		public function markConversationAsRead($conv_id){
@@ -290,38 +324,25 @@
 			return $newConnections;
 		}
 
-		/*
-			get one particular msg
-			check the previous msg and save it
-				-> if previous msg, 
-					-> check the msg id in msg_sent --> template?
-					-> check if Watson answered (new field isFromWatson [bool])
 
-			for every msgs, save the template ID if exists.
+		/**
+		* @param @createdBefore (optional) a date in LinkedIn format
 		*/
+		function getAllConversations($createdBefore=null){	// to use verify carrefully, could be long...
+			$headers = $this->getHeaders();
+			$createdBefore = $createdBefore??$this->timestampToLinkedinDate(time());
 
-		// function getAllConversations(){	// to use verify carrefully, could be long...
-		// 	$headers = $this->getHeaders();
-		// 	$lastConv = $this->timestampToLinkedinDate(time());
-		// 	$allConversations = array();
-
-		// 	do{
-		// 		$content = $this->page('voyager/api/messaging/conversations?createdBefore='.$lastConv, [], $headers, false, false);
-		// 		$conversations = explode('urn:li:fs_event:(', $content);
-		// 		unset($conversations[0]);
-		// 		$conversation_list = array();
-		// 		foreach ($conversations as $conv) {
-		// 			if(!in_array(intval($conv), $conversation_list)){
-		// 				array_push($conversation_list, intval(explode(',', $conv)[0]));
-		// 				$dateConv = $this->fetch_value($conv, '"createdAt":', ',');
-		// 				if($dateConv != '')
-		// 					$lastConv = $dateConv;
-		// 			}
-		// 		}
-		// 		$allConversations = array_merge($allConversations, $conversation_list);
-		// 	}while(count($conversation_list) != 0);
-		// 	return $allConversations;
-		// }
+			$content = $this->page('voyager/api/messaging/conversations?createdBefore='.$createdBefore, [], $headers, false, false);
+			$conversations = explode('urn:li:fs_event:(', $content);
+			unset($conversations[0]);
+			$conversation_list = array();
+			foreach ($conversations as $conv) {
+				if(!in_array(intval($conv), $conversation_list)){
+					array_push($conversation_list, intval(explode(',', $conv)[0]));
+				}
+			}
+			return $conversation_list;
+		}
 
 		function getUnreadConversations(){
 			$headers = $this->getHeaders();
@@ -371,7 +392,7 @@
 						$userName = $user['firstName'].' '.$user['lastName'];
 					}
 					$authorId = $authorId==$this->_myProfileId?'bot':$userName;
-					array_push($msg_list, array('profile_id'=>$profile_id, 'by'=> $authorId, 'date'=>$date, 'msg'=>nl2br($msg_text), 'msg_id'=>$msg_id));
+					array_push($msg_list, array('profile_id'=>$profile_id, 'by'=> $authorId, 'date'=>$date, 'msg'=>nl2br($msg_text), 'msg_id'=>$msg_id, 'conv_id'=>$conv, 'linkedinDate'=>$timelinkedin));
 				}
 			}
 			return $msg_list;

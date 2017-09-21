@@ -49,7 +49,7 @@
 	*
 	* @param string $profile_id The id of the user to check
 	*
-	* @return false if msg never send, the query response else
+	* @return false if connect never send, the query response else
 	*/
 	function isConnectSent($profile_id){
 		global $db;
@@ -75,21 +75,44 @@
 	
 
 	/**
-	* Get all msg sent sent by the bot
+	* Get all msg of a conversation
 	*
-	* @param ] string $user Only messages sent to this user
+	* @param string $conv Conversation with this id
+	*
+	* @param bool $fromUser (optional) Use the parameter $conv the profile_id and not the con_id
+	*
+	* @return Array with all msgs
+	*/
+	function getConversation($id, $fromUser=false){
+		global $db;
+		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE '.$fromUser?'profile_id':'conv_id'.'=:id ORDER BY ID');
+		$statement->execute(array(':id'=>$id));
+		return $statement->fetchAll();
+	}
+
+	
+	/**
+	* Get all msg sent by the bot
+	*
+	* @param ] string $user Only messages to this user
+	*
+	* @param ] string $conv_id Only messages from this conversration
+	*
+	* @param ] string $msg_id Only this msg
 	*
 	* @param ] int $template Only messages from this template
 	*
 	* @return Array with all msg
 	*/
-	function getMsgSent($profile_id='%%', $template='%%'){
+	function getMsgSent($profile_id='%%', $conv_id='%%', $msg_id='%%', $template='%%'){
 		global $db;
 		$profile_id = empty($profile_id)?'%%':$profile_id;
+		$conv_id = empty($conv_id)?'%%':$conv_id;
+		$msg_id = empty($msg_id)?'%%':$msg_id;
 		$template = empty($template)?'%%':$template;
-		$statement = $db->prepare('SELECT * FROM msg_sent WHERE profile_id LIKE :profile_id AND template_msg LIKE :template ORDER BY ID');
-		$statement->execute(array(':profile_id'=>$profile_id, ':template'=>$template));
-		return $statement->fetchAll();
+		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=1 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template ORDER BY ID');
+		$statement->execute(array(':profile_id'=>$profile_id, ':conv_id'=>$conv_id, ':msg_id'=>$msg_id, ':template'=>$template));
+		return $statement->rowCount()==0?null:$statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 
 
@@ -102,7 +125,7 @@
 	*/
 	function isMsgSentId($conv, $msg_id){
 		global $db;
-		$statement = $db->prepare('SELECT * FROM msg_sent WHERE conv_id = :conv AND msg_id = :msg_id');
+		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=1 AND conv_id = :conv AND msg_id = :msg_id');
 		$statement->execute(array(':conv' => $conv, ':msg_id' => $msg_id));
 		if($statement->rowCount() == 0)
 			return false;
@@ -112,33 +135,37 @@
 	/**
 	* Save the msg sent from the bot to an user
 	*
-	* @param string $profile_id The id of the user to check
-	* @param string $pmsg The msg
-	*
 	*/
-	function saveMsgSent($profile_id, $msg, $conv, $msg_id, $template=0, $watson=0){
+	function saveMsgSent($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson=0){
 		global $db;
-		$statement = $db->prepare('INSERT INTO msg_sent (profile_id, conv_id, msg_id, template_msg, msg, watson) VALUES (:profile_id, :conv, :msg_id, :template, :msg, :watson)');
-		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson'=>$watson));
+		$date = gettype($date)=='string'?$date:date('Y-m-d G:i:s', $date);
+		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson, date) VALUES (1, :profile_id, :conv, :msg_id, :template, :msg, :watson, :date)');
+		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson'=>$watson, ':date'=>$date));
 	}
 
 
 	/**
-	* Get all msg sent received by the bot
+	* Get all msg received by the bot
 	*
 	* @param ] string $user Only messages from this user
+	*
+	* @param ] string $conv_id Only messages from this conversration
+	*
+	* @param ] string $msg_id Only this msg
 	*
 	* @param ] int $template Only messages from this template
 	*
 	* @return Array with all msg
 	*/
-	function getMsgReceived($profile_id='%%', $template='%%'){
+	function getMsgReceived($profile_id='%%', $conv_id='%%', $msg_id='%%', $template='%%'){
 		global $db;
 		$profile_id = empty($profile_id)?'%%':$profile_id;
+		$conv_id = empty($conv_id)?'%%':$conv_id;
+		$msg_id = empty($msg_id)?'%%':$msg_id;
 		$template = empty($template)?'%%':$template;
-		$statement = $db->prepare('SELECT * FROM msg_received WHERE profile_id LIKE :profile_id AND template_msg LIKE :template ORDER BY ID');
-		$statement->execute(array(':profile_id'=>$profile_id, ':template'=>$template));
-		return $statement->fetchAll();
+		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=0 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template ORDER BY ID');
+		$statement->execute(array(':profile_id'=>$profile_id, ':conv_id'=>$conv_id, ':msg_id'=>$msg_id, ':template'=>$template));
+		return $statement->rowCount()==0?null:$statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 	/**
 	* Save the msg received by the bot
@@ -150,13 +177,31 @@
 	* @param int $template (optional) The ID of the msg template used
 	*
 	*/
-	function saveMsgReceived($profile_id, $msg, $conv, $msg_id, $template=0){
+	function saveMsgReceived($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson=false){
 		global $db;
-		$statement = $db->prepare('INSERT INTO msg_sent (profile_id, conv_id, msg_id, template_msg, msg) VALUES (:profile_id, :conv, :msg_id, :template, :msg)');
-		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg));
+		$date = gettype($date)=='string'?$date:date('Y-m-d G:i:s', $date);
+		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson, date) VALUES (0, :profile_id, :conv, :msg_id, :template, :msg, :watson, :date)');
+		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson'=>$watson, ':date'=>$date));
 	}
 
-	
+	/**
+	* Get the previous msg of a conversation
+	*
+	* @param string $conv_id The conversation
+	*
+	* @param bool $fromUser (optional) True if you want the previous msg of the user, False (default) for the bot
+	*
+	* @return Array with the previous msg
+	*/
+	function getLastMsg($conv_id, $fromUser=false){
+		global $db;
+		// first we get the ID of the msg now (supposed to be only one msg with this msg_id --> [0])
+		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=:by AND conv_id=:conv_id ORDER BY date DESC LIMIT 1');
+		$statement->execute(array(':by'=>!$fromUser, ':conv_id'=>$conv_id));
+		return $statement->rowCount()==0?null:$statement->fetch(PDO::FETCH_ASSOC);
+	}
+
+	/* --------------------------------------- */
 
 	/**
 	* Get all connections
