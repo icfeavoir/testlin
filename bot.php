@@ -53,7 +53,7 @@
             //send msg to new connections
     		foreach ($newConnections as $key => $profile_id) {
     			// send msg to new connections
-    			$li->sendMsg($profile_id, getDefaultMsg()['msg']);
+    			$li->sendMsg($profile_id, getAllTemplates(true)[0]['msg']);
     			do_sleep();
     		}
 
@@ -109,19 +109,23 @@
 			NO -> continue
 			YES -> wait for 2 days!
 		---------------------------------------
-
+    
+    I. KEY WORDS -> CONNECT
 		1. Key words
 		2. search_to_array()
 		3. connect_to (if not yet of course)
 		---------------------------------------
 
+    II. NEW CONNECTION REQUESTS? -> ACCEPT
         1. Accept new connection request
         ---------------------------------------
 
+    III. NEW CONNECTIONS? -> SEND MSG
         1. check for last connections accepted
         2. send msg to new connections
         ---------------------------------------
 
+    IV. CHECK UNREAD CONVERSATIONS -> ANSWER WITH WATSON
         1. get a random unread conversation
         2. get the last message
             -> answer it if Watson has an answer to give

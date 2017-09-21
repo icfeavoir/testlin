@@ -290,6 +290,7 @@
 			$headers = $this->getHeaders();
 			array_push($headers, 'referer: https://www.linkedin.com/messaging/thread/'.$conv_id.'/');
 			$this->page('voyager/api/messaging/conversations/'.$conv_id, $payload, $headers, false, false);
+			setRead($conv_id);
 		}
 
 		public function checkNewConnections(){
@@ -452,13 +453,13 @@
 				);
 		}
 
-		private function linkedinDateToTimestamp($linkDate){
+		public function linkedinDateToTimestamp($linkDate){
 			// date reference from me : 14 September 2017 - 20:14 --> 1505412842611 / Timestamp = 1505412840
 			$ref_timestamp = 1505412840;
 			$ref_timelinkedin = 1505412842611;
 			return round($linkDate*$ref_timestamp/$ref_timelinkedin);
 		}
-		private function timestampToLinkedinDate($timestamp){
+		public function timestampToLinkedinDate($timestamp){
 			// date reference from me : 14 September 2017 - 20:14 --> 1505412842611 / Timestamp = 1505412840
 			$ref_timestamp = 1505412840;
 			$ref_timelinkedin = 1505412842611;

@@ -72,7 +72,7 @@
 		$statement->execute(array(':profile_id' => $profile_id));
 	}
 
-	
+	/* -------------- CONVERSATIONS --------------------- */
 
 	/**
 	* Get all msg of a conversation
@@ -85,9 +85,9 @@
 	*/
 	function getConversation($id, $fromUser=false){
 		global $db;
-		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE '.$fromUser?'profile_id':'conv_id'.'=:id ORDER BY ID');
+		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE conv_id=:id ORDER BY date');
 		$statement->execute(array(':id'=>$id));
-		return $statement->fetchAll();
+		return $statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 
 	
@@ -104,14 +104,15 @@
 	*
 	* @return Array with all msg
 	*/
-	function getMsgSent($profile_id='%%', $conv_id='%%', $msg_id='%%', $template='%%'){
+	function getMsgSent($profile_id='%%', $conv_id='%%', $msg_id='%%', $template='%%', $watson_msg='%%'){
 		global $db;
 		$profile_id = empty($profile_id)?'%%':$profile_id;
 		$conv_id = empty($conv_id)?'%%':$conv_id;
 		$msg_id = empty($msg_id)?'%%':$msg_id;
 		$template = empty($template)?'%%':$template;
-		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=1 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template ORDER BY ID');
-		$statement->execute(array(':profile_id'=>$profile_id, ':conv_id'=>$conv_id, ':msg_id'=>$msg_id, ':template'=>$template));
+		$watson_msg = empty($watson_msg)?'%%':$watson_msg;
+		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=1 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template  AND watson_msg LIKE :watson_msg ORDER BY ID');
+		$statement->execute(array(':profile_id'=>$profile_id, ':conv_id'=>$conv_id, ':msg_id'=>$msg_id, ':template'=>$template, ':watson_msg'=>$watson_msg));
 		return $statement->rowCount()==0?null:$statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 
@@ -136,11 +137,11 @@
 	* Save the msg sent from the bot to an user
 	*
 	*/
-	function saveMsgSent($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson=0){
+	function saveMsgSent($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson_msg=0){
 		global $db;
 		$date = gettype($date)=='string'?$date:date('Y-m-d G:i:s', $date);
-		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson, date) VALUES (1, :profile_id, :conv, :msg_id, :template, :msg, :watson, :date)');
-		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson'=>$watson, ':date'=>$date));
+		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson_msg, date) VALUES (1, :profile_id, :conv, :msg_id, :template, :msg, :watson_msg, :date)');
+		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson_msg'=>$watson_msg, ':date'=>$date));
 	}
 
 
@@ -157,14 +158,17 @@
 	*
 	* @return Array with all msg
 	*/
-	function getMsgReceived($profile_id='%%', $conv_id='%%', $msg_id='%%', $template='%%'){
+	function getMsgReceived($profile_id='%%', $conv_id='%%', $msg_id='%%', $template='%%', $watson_msg='%%', $watson_try='%%', $is_read='%%'){
 		global $db;
 		$profile_id = empty($profile_id)?'%%':$profile_id;
 		$conv_id = empty($conv_id)?'%%':$conv_id;
 		$msg_id = empty($msg_id)?'%%':$msg_id;
 		$template = empty($template)?'%%':$template;
-		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=0 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template ORDER BY ID');
-		$statement->execute(array(':profile_id'=>$profile_id, ':conv_id'=>$conv_id, ':msg_id'=>$msg_id, ':template'=>$template));
+		$watson_msg = empty($watson_msg)?'%%':$watson_msg;
+		$watson_try = empty($watson_try)?'%%':$watson_try;
+		$is_read = empty($is_read)?'%%':$is_read;
+		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=0 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template AND watson_msg LIKE :watson_msg AND watson_try LIKE :watson_try AND is_read LIKE :is_read ORDER BY ID');
+		$statement->execute(array(':profile_id'=>$profile_id, ':conv_id'=>$conv_id, ':msg_id'=>$msg_id, ':template'=>$template, ':watson_msg'=>$watson_msg, ':watson_try'=>$watson_try, ':is_read'=>$is_read));
 		return $statement->rowCount()==0?null:$statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 	/**
@@ -177,11 +181,11 @@
 	* @param int $template (optional) The ID of the msg template used
 	*
 	*/
-	function saveMsgReceived($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson=false){
+	function saveMsgReceived($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson_msg=false){
 		global $db;
 		$date = gettype($date)=='string'?$date:date('Y-m-d G:i:s', $date);
-		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson, date) VALUES (0, :profile_id, :conv, :msg_id, :template, :msg, :watson, :date)');
-		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson'=>$watson, ':date'=>$date));
+		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson_msg, date) VALUES (0, :profile_id, :conv, :msg_id, :template, :msg, :watson_msg, :date)');
+		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson_msg'=>$watson_msg, ':date'=>$date));
 	}
 
 	/**
@@ -199,6 +203,34 @@
 		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=:by AND conv_id=:conv_id ORDER BY date DESC LIMIT 1');
 		$statement->execute(array(':by'=>!$fromUser, ':conv_id'=>$conv_id));
 		return $statement->rowCount()==0?null:$statement->fetch(PDO::FETCH_ASSOC);
+	}
+
+	/**
+	* Set a conv to read or unread
+	*
+	* @param string $conv_id The conv
+	*
+	* @param bool $read (optional) True for read
+	*
+	*/
+	function setRead($conv_id, $is_read=true){
+		global $db;
+		$statement = $db->prepare('UPDATE msg_conversation SET is_read=:is_read WHERE conv_id=:conv_id');
+		$statement->execute(array(':is_read'=>$is_read, ':conv_id'=>$conv_id));
+	}
+
+	/**
+	* Change the watson_try value (if true and msg not read => watson can't answer)
+	*
+	* @param string $msg_id The id of the message
+	*
+	* @param bool $read (optional) True for try
+	*
+	*/
+	function setWatsonTry($msg_id, $try=true){
+		global $db;
+		$statement = $db->prepare('UPDATE msg_conversation SET watson_try=:try WHERE msg_id=:msg_id');
+		$statement->execute(array(':try'=>$try, ':msg_id'=>$msg_id));
 	}
 
 	/* --------------------------------------- */
@@ -283,38 +315,33 @@
 
 
 	/**
-	* Save default msg to send in DB
+	* Save template to send in DB
 	*
 	* @param string $msg the msg
 	*
 	*/
-	function saveDefaultMsg($msg){
+	function saveTemplate($msg){
 		global $db;
 		$statement = $db->prepare('INSERT INTO msg_template SET msg = :msg');
 		$statement->execute(array(':msg' => $msg));
 	}
 
 	/**
-	* Get the default msg
-	*
-	* @return string The msg
-	*/
-	function getDefaultMsg(){
-		global $db;
-		$statement = $db->prepare('SELECT msg FROM msg_template ORDER BY ID DESC LIMIT 1');
-		$statement->execute();
-		return $statement->fetch();
-	}
-
-	/**
 	* Get all templates (recent to older)
+	*
+	* @param bool $active (optional) Get only the active templates
 	*
 	* @return array All templates
 	*/
-	function getAllTemplates(){
+	function getAllTemplates($active=null){
 		global $db;
-		$statement = $db->prepare('SELECT ID, msg, DATE_FORMAT(created, "%Y-%m-%e") AS created FROM msg_template ORDER BY ID DESC');
-		$statement->execute();
+		if($active != null){
+			$statement = $db->prepare('SELECT ID, msg, DATE_FORMAT(created, "%Y-%m-%e") AS created, active FROM msg_template WHERE active=:active ORDER BY ID DESC');
+			$statement->execute(array(':active'=>$active));
+		}else{
+			$statement = $db->prepare('SELECT ID, msg, DATE_FORMAT(created, "%Y-%m-%e") AS created, active FROM msg_template ORDER BY ID DESC');
+			$statement->execute();
+		}
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 
@@ -327,9 +354,23 @@
 	*/
 	function getTemplate($id){
 		global $db;
-		$statement = $db->prepare('SELECT ID, msg, DATE_FORMAT(created, "%Y-%m-%e") AS created FROM msg_template WHERE ID=:id');
+		$statement = $db->prepare('SELECT ID, msg, DATE_FORMAT(created, "%Y-%m-%e") AS created, active FROM msg_template WHERE ID=:id');
 		$statement->execute(array(':id'=>$id));
 		return $statement->fetch(PDO::FETCH_ASSOC);
+	}
+
+	/**
+	* Change the state of a template
+	*
+	* @param int $id The ID of the template
+	*
+	* @param bool $state The state
+	*
+	*/
+	function setTemplateState($id, $state){
+		global $db;
+		$statement = $db->prepare('UPDATE msg_template SET active=:state WHERE ID=:id');
+		$statement->execute(array(':id'=>intval($id), ':state'=>$state?1:0));
 	}
 
 	// GENERAL FUNCTIONS
@@ -347,4 +388,11 @@
 		$statement = $db->prepare('DELETE FROM '.$table.' WHERE ID=:id');
 		$statement->execute(array(':id'=>$id));
 		return $statement->rowCount()==1;
+	}
+
+	function directQuery($query){
+		global $db;
+		$statement = $db->prepare($query);
+		$statement->execute();
+		return $statement->fetchAll();
 	}

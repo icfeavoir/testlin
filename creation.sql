@@ -25,7 +25,9 @@ CREATE TABLE IF NOT EXISTS `msg_conversation` (
 	`msg_id` varchar(255) NOT NULL,
 	`template_msg` int NOT NULL DEFAULT 0,
 	`msg` varchar(255) NOT NULL,
-	`watson` boolean NOT NULL DEFAULT false,
+	`watson_msg` boolean NOT NULL DEFAULT false,
+	`watson_try` boolean NOT NULL DEFAULT false,
+	`is_read` boolean NOT NULL DEFAULT false,
 	`date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -37,7 +39,8 @@ CREATE TABLE IF NOT EXISTS `key_word_list` (
 CREATE TABLE IF NOT EXISTS `msg_template` (
 	`ID` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	`msg` varchar(255) NOT NULL,
-	`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+	`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`active` boolean NOT NULL DEFAULT true
 );
 
 

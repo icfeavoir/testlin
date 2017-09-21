@@ -51,17 +51,13 @@
 	}
 	else if($_POST['action'] == 'unreadConv'){
 		$json['showMsg'] = false;
-		$json['unreadConv'] = json_encode(Linkedin::noInst()->getUnreadConversations());
+		// all conversations not read
+		$json['unreadConv'] = getMsgReceived('%%', '%%', '%%', '%%', '%%', '%%', false);
 	}
 	// RANDOM CONVERSATION
 	else if($_POST['action'] == 'getMsgConv'){
-//TODO : get from DB and not from LinkedIn?		
-		// first all unread conversation
-    	$conv = $_POST['conv'];
-    	//then all msgs frome this conv
-    	$msgs = Linkedin::noInst()->getAllMsg($conv);
     	$json['showMsg'] = false;
-    	$json['msgs'] = json_encode($msgs);
+    	$json['msgs'] = getConversation($_POST['conv']);
 	}
 	//USER INFOS
 	else if($_POST['action'] == 'getUserInformations'){
@@ -72,21 +68,17 @@
 	else if($_POST['action'] == 'markRead'){
 		$json['showMsg'] = isset($_POST['show']);
 		$json['msg'] = 'Conversation marked as read!';
-		$msg = Linkedin::noInst()->markConversationAsRead($_POST['conv']);
+		$msg = setRead($_POST['conv']);
 	}
 	// SEND MESSAGE
 	else if($_POST['action'] == 'sendMsg'){
 		$msg = Linkedin::noInst()->sendMsg($_POST['profile_id'], $_POST['msg']);
 		$json['msg'] = 'Your msg has been sent!';
 	}
-	//DEFAULT MSG
-	else if($_POST['action'] == 'getDefaultMsg'){
-		$json['showMsg'] = false;
-		$json['defaultMsg'] = getDefaultMsg()['msg'];
-	}
-	else if($_POST['action'] == 'setDefaultMsg'){
-		$json['msg'] = 'Default message updated!';
-		saveDefaultMsg($_POST['msg']);
+	//TEMPLATE
+	else if($_POST['action'] == 'saveTemplate'){
+		$json['msg'] = 'Template saved!';
+		saveTemplate($_POST['msg']);
 	}
 
 	// --------------------- TEMPLATE MANAGER -----------------------
@@ -94,6 +86,11 @@
 	else if($_POST['action'] == 'getAllTemplates'){
 		$json['showMsg'] = false;
 		$json['templates'] = getAllTemplates();
+	}
+	else if($_POST['action'] == 'changeTemplateState'){
+		$state = $_POST['state'] == 'true';
+		$json['msg'] = 'The template '.$_POST['id'].' is now '.($state?'active':'inactive');
+		setTemplateState($_POST['id'], $state);
 	}
 
 	// --------------------- UNIQUE TEMPLATE MANAGER -----------------------
