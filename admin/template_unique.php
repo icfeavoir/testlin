@@ -50,7 +50,7 @@ $(document).ready(function(){
 	$('.to-load').each(function(){
 		var tag = $(this);
 		post({'action':$(this).attr('id'), 'template':template}, function(resp){
-			tag.text(resp.value);
+			tag.html(resp.value);
 		});
 	});
 });

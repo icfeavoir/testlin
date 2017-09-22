@@ -221,7 +221,7 @@
 		public function sendMsg($profile_id, $msg, $watson=0){
 			if(is_array($msg)){	// if send template, to user with the getTemplate($id) function
 				$template = $msg['ID'];
-				$msg = $msg['msg'];
+				$msg = str_replace('<br />', '\n', $msg['msg']);
 			}else{
 				$template = 0;
 			}
@@ -238,7 +238,7 @@
 			$sending = $this->page('voyager/api/messaging/conversations?action=create', $payload, $headers, false, false);
 			$infos = explode(',', $this->fetch_value($sending, 'urn:li:fs_event:(', ')'));
 			if(count($infos) < 2){	// conv not found
-				return;
+				return null;
 			}
 			$conv_id = $infos[0];
 			$msg_id = $infos[1];
@@ -258,7 +258,7 @@
 		public function receiveMsg($msg){
 			// check if not saved yet and not msg sent
 			if(getMsgReceived(null, null, $msg['msg_id']) == null && $msg['by']!='bot'){
-				// previous msg from the bot ?
+				// previous msg from the bot
 				$prev = getLastMsg($msg['conv_id']);
 				$template = $prev['template_msg']??0;
 				$watson = $prev['watson']??0;
@@ -273,6 +273,8 @@
 		* @param string $msg A message formated from getAllMsg()
 		*/
 		public function saveMsg($msg){
+			if($msg['msg'] == '')
+				return;
 			if($msg['by'] == 'bot'){
 				// already saved
 				if(getMsgSent(null, null, $msg['msg_id']) != null)
@@ -431,11 +433,14 @@
 		}
 
 		public function getBotDetected(){
-			$content = $this->page();	// try to acces home page and see if redirection
-			if(strpos($content, 'login') !== false){	// robots detected!
-				return true;
+			$cookie = preg_split('/\s+/', file_get_contents(ROOTPATH.'/cookie.txt'));
+			$linkedin = array_search('.www.linkedin.com', $cookie);
+			if($linkedin !== false && $cookie[$linkedin+1] == 'TRUE'){
+			    return true;
+			}else{
+			    return false;
 			}
-			return false;
+
 		}
 
 		public function close(){

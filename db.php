@@ -30,7 +30,30 @@
 		$statement = $db->prepare('UPDATE bot_disconnect SET is_disconnect = :is_disconnect');
 		$statement->bindValue(':is_disconnect', $isDisconnect, PDO::PARAM_INT);
 		$statement->execute();
-	}	
+	}
+
+	/**
+	* Get action the bot is currently doing
+	*
+	* @return String the action
+	*/
+	function getAction(){
+		global $db;
+		$statement = $db->prepare('SELECT action FROM bot_action LIMIT 1');
+		$statement->execute();
+		return $statement->fetch()['action'];
+	}
+
+	/**
+	* Change the actino of the bot
+	*
+	* @param string $action The action
+	*/
+	function setAction($action){
+		global $db;
+		$statement = $db->prepare('UPDATE bot_action SET action = :action');
+		$statement->execute(array(':action'=>$action));
+	}
 
 	/* ON - OFF */
 
@@ -167,8 +190,8 @@
 	function saveMsgSent($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson_msg=0){
 		global $db;
 		$date = gettype($date)=='string'?$date:date('Y-m-d G:i:s', $date);
-		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson_msg, date) VALUES (1, :profile_id, :conv, :msg_id, :template, :msg, :watson_msg, :date)');
-		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson_msg'=>$watson_msg, ':date'=>$date));
+		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson_msg, is_read, date) VALUES (1, :profile_id, :conv, :msg_id, :template, :msg, :watson_msg, :read, :date)');
+		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson_msg'=>$watson_msg, ':read'=>true, ':date'=>$date));
 	}
 
 
@@ -195,7 +218,7 @@
 		$watson_try = getType($watson_try)!='boolean'?'%%':intval($watson_try);
 		$is_read = getType($is_read)!='boolean'?'%%':intval($is_read);
 
-		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=0 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template AND watson_msg LIKE :watson_msg AND watson_try LIKE :watson_try AND is_read LIKE :is_read ORDER BY ID');
+		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=0 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template AND watson_msg LIKE :watson_msg AND watson_try LIKE :watson_try AND is_read LIKE :is_read ORDER BY date');
 		$statement->execute(array(':profile_id'=>$profile_id, ':conv_id'=>$conv_id, ':msg_id'=>$msg_id, ':template'=>$template, ':watson_msg'=>$watson_msg, ':watson_try'=>$watson_try, ':is_read'=>$is_read));
 		return $statement->rowCount()==0?null:$statement->fetchAll(PDO::FETCH_ASSOC);
 	}

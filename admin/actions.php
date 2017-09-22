@@ -36,6 +36,8 @@
 	}
 	else if($_POST['action'] == 'changeBotState'){
 		$json['msg'] = 'The bot is now '.($_POST['state']==1?'On':'Off');
+		if($_POST['state'])
+			setAction('The bot is starting...');
 		setIsOn($_POST['state']?1:0);
 	}
 	// KEY WORDS
@@ -56,11 +58,15 @@
 	else if($_POST['action'] == 'stats'){
 		$json['showMsg'] = false;
 		$func = $_POST['function'];
-		$json['value'] = count($func());
+		if($func == 'getAction'){
+			$json['value'] = $func();
+		}else{
+			$json['value'] = count($func());
+		}
 	}
 	else if($_POST['action'] == 'unreadConv'){
 		$json['showMsg'] = false;
-		// all conversations not read
+		// all conversations not read and where watson try but couldn't answer
 		$json['unreadConv'] = getMsgReceived('%%', '%%', '%%', '%%', '%%', '%%', false);
 	}
 	// RANDOM CONVERSATION
