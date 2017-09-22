@@ -15,7 +15,8 @@
 
     // INITIALIZATION
     $key_words_count = 0;
-    $page = 1;
+    $page = 51;
+    $number_request_before_move = 30;
 
     setAction('The bot is connecting to the account.');
     $li = new Linkedin(USERNAME, PASSWORD);
@@ -39,20 +40,22 @@
                 setAction('The bot is doing a search with this key word: <b>'.$key_word.'</b> (page '.$page.').');
                 do_sleep();
     	    	// sending connnect request if not already sent
-                if(!empty($result)){
+                if(count($result)==0){
                     $page = 1;  //reinit;
                     $sendConnect = false;
                     $key_words_count++; // new key word
                 }
     	    	foreach ($result as $profile_id) {
-                    setAction('The bot found some users for the key word <b>'.$key_word.'</b> (page '.$page.').<br/>It is sending a connect request to this ID: '.$profile_id);
     	    		$already = $li->connectTo($profile_id);
                     if($already != null){   // if sent, else means that we already asked this user so we can skip it
                         $countConnect++;
+                        setAction('The bot found some users for the key word <b>'.$key_word.'</b> (page '.$page.').<br>It is sending a connect request to this ID: '.$profile_id.'.<br>'.($number_request_before_move-$countConnect).' more and it will do something else.');
         	    		do_sleep();
+                    }else{
+                        setAction('Connection request already sent to those users.');
                     }
     	    	}
-                if($countConnect>100){  // stop connect, let's chat and we continue next time so page don't change
+                if($countConnect>$number_request_before_move){  // stop connect, let's chat and we continue next time so page don't change
                     $sendConnect=false;
                 }
                 $page++;
