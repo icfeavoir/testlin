@@ -157,6 +157,10 @@ p.date{
 	transition: color .5s;
 }
 
+textarea{
+	resize: vertical; 
+}
+
 /* ----------------------- TEMPLATE MANAGER -----------------------------*/
 
 .template-manager i:hover{

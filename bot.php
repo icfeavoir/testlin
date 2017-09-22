@@ -16,7 +16,7 @@
     // INITIALIZATION
     $key_words_count = 0;
     $page = 51;
-    $number_request_before_move = 30;
+    $asked_connect_max = 10;
 
     setAction('The bot is connecting to the account.');
     $li = new Linkedin(USERNAME, PASSWORD);
@@ -49,13 +49,13 @@
     	    		$already = $li->connectTo($profile_id);
                     if($already != null){   // if sent, else means that we already asked this user so we can skip it
                         $countConnect++;
-                        setAction('The bot found some users for the key word <b>'.$key_word.'</b> (page '.$page.').<br>It is sending a connect request to this ID: '.$profile_id.'.<br>'.($number_request_before_move-$countConnect).' more and it will do something else.');
+                        setAction('The bot found some users for the key word <b>'.$key_word.'</b> (page '.$page.').<br>It is sending a connect request to this ID: '.$profile_id.'.<br>'.($asked_connect_max-$countConnect).' more and it will do something else.');
         	    		do_sleep();
                     }else{
                         setAction('Connection request already sent to those users.');
                     }
     	    	}
-                if($countConnect>$number_request_before_move){  // stop connect, let's chat and we continue next time so page don't change
+                if($countConnect>$asked_connect_max){  // stop connect, let's chat and we continue next time so page don't change
                     $sendConnect=false;
                 }
                 $page++;
@@ -88,7 +88,7 @@
                 // saving all new msgs in database
                 $msgs = $li->getAllMsg($conv);
                 foreach ($msgs as $key => $msg) {
-                    setAction('The bot is saving in database all new messages.');
+                    setAction('The bot is saving in database all new messages of conversation n°'.$conv);
                     $li->saveMsg($msg);
                 }
                 do_sleep();
