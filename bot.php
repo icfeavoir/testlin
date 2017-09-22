@@ -21,14 +21,16 @@
 
     while(true){
 	    if(getIsOn()){
-    		if($li->getBotDetected()){
-    			do_sleep(172800);	// if bot detected, sleep 48 hours
+    		while($li->getBotDetected()){
+                setIsDisconnect(true);
+                setIsOn(false);
+    			do_sleep(86400);	// if bot detected, sleep 24 hours
     			$li = new Linkedin(USERNAME, PASSWORD);
     		}
             
     	    $key_words_list = getKeyWords();
-    	    // SEND CONNECT
-    	    $key_words_count %= count($key_words_list);
+    	    // SEND CONNEC
+T    	    $key_words_count %= count($key_words_list);
     	    $key_word = $key_words_list[$key_words_count]['key_word'];
     	    $key_words_count++;
     	    $page = 1;
@@ -122,12 +124,14 @@
 
     III. NEW CONNECTIONS? -> SEND MSG
         1. check for last connections accepted
-        2. send msg to new connections
+        2. save in DB
+        3. send msg (random in templates active) to new connections
         ---------------------------------------
 
     IV. CHECK UNREAD CONVERSATIONS -> ANSWER WITH WATSON
-        1. get a random unread conversation
-        2. get the last message
+        1. get all unread conversations
+        2. save in DB
+        3. get the last message
             -> answer it if Watson has an answer to give
             -> else let the conversation unread
         ---------------------------------------

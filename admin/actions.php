@@ -20,6 +20,15 @@
 
 	// INDEX PAGE
 
+	// DISCONNECT
+	else if($_POST['action'] == 'botDisconnect'){
+		$json['showMsg'] = false;
+		$json['disconnect'] = getIsDisconnect();
+	}
+	else if($_POST['action'] == 'changeBotDisconnect'){
+		$json['showMsg'] = false;
+		setIsDisconnect($_POST['disconnect']);
+	}
 	// ON OFF
 	else if($_POST['action'] == 'isOn'){
 		$json['showMsg'] = false;
@@ -75,14 +84,13 @@
 		$msg = Linkedin::noInst()->sendMsg($_POST['profile_id'], $_POST['msg']);
 		$json['msg'] = 'Your msg has been sent!';
 	}
-	//TEMPLATE
+
+	// --------------------- TEMPLATE MANAGER -----------------------
+
 	else if($_POST['action'] == 'saveTemplate'){
 		$json['msg'] = 'Template saved!';
 		saveTemplate($_POST['msg']);
 	}
-
-	// --------------------- TEMPLATE MANAGER -----------------------
-
 	else if($_POST['action'] == 'getAllTemplates'){
 		$json['showMsg'] = false;
 		$json['templates'] = getAllTemplates();
@@ -102,16 +110,16 @@
 	else if($_POST['action'] == 'getNumberSent'){
 		$json['showMsg'] = false;
 		$number = count(getMsgSent(null, null, null, $_POST['template']));
-		$total = count(getMsgSent());
+		$total = count(directQuery('SELECT ID FROM msg_conversation WHERE by_bot=true AND template_msg!=0'));
 		$percent = $total!=0?round($number*100/$total):0;
-		$json['value'] = $number.' ('.$percent.'%)';
+		$json['value'] = $number.' ('.$percent.'% of first message with this template)';
 	}
 	else if($_POST['action'] == 'getNumberReceived'){
 		$json['showMsg'] = false;
 		$number = count(getMsgReceived(null, null, null, $_POST['template'])??[]);
-		$total = count(getMsgReceived());
+		$total = count(directQuery('SELECT ID FROM msg_conversation WHERE by_bot=true AND template_msg='.$_POST['template']));
 		$percent = $total!=0?round($number*100/$total):0;
-		$json['value'] = $number.' ('.$percent.'%)';
+		$json['value'] = $number.' ('.$percent.'% of messages sent with this template had a response)';
 	}
 
 	exit(json_encode($json));

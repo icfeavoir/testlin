@@ -6,11 +6,38 @@
 		exit('Error: '.$e);
 	}
 
+	/* DISCONNECT */
+
+	/**
+	* Get if the bot is disconnect
+	*
+	* @return Bool True if disconnect
+	*/
+	function getIsDisconnect(){
+		global $db;
+		$statement = $db->prepare('SELECT is_disconnect FROM bot_disconnect LIMIT 1');
+		$statement->execute();
+		return $statement->fetch()['is_disconnect'] == true;
+	}
+
+	/**
+	* Change the state of the bot (reconnect)
+	*
+	* @param bool $isDisconnect true for the bot disconnected, false for the bot connected
+	*/
+	function setIsDisconnect($isDisconnect){
+		global $db;
+		$statement = $db->prepare('UPDATE bot_disconnect SET is_disconnect = :is_disconnect');
+		$statement->bindValue(':is_disconnect', $isDisconnect, PDO::PARAM_INT);
+		$statement->execute();
+	}	
+
+	/* ON - OFF */
 
 	/**
 	* Get the current state of the bot
 	*
-	* @return Bool is the bot on
+	* @return Bool True is the bot on
 	*/
 	function getIsOn(){
 		global $db;
@@ -94,13 +121,13 @@
 	/**
 	* Get all msg sent by the bot
 	*
-	* @param ] string $user Only messages to this user
+	* @param string $user Only messages to this user
 	*
-	* @param ] string $conv_id Only messages from this conversration
+	* @param string $conv_id Only messages from this conversration
 	*
-	* @param ] string $msg_id Only this msg
+	* @param string $msg_id Only this msg
 	*
-	* @param ] int $template Only messages from this template
+	* @param int $template Only messages from this template
 	*
 	* @return Array with all msg
 	*/
@@ -148,13 +175,13 @@
 	/**
 	* Get all msg received by the bot
 	*
-	* @param ] string $user Only messages from this user
+	* @param string $user Only messages from this user
 	*
-	* @param ] string $conv_id Only messages from this conversration
+	* @param string $conv_id Only messages from this conversration
 	*
-	* @param ] string $msg_id Only this msg
+	* @param string $msg_id Only this msg
 	*
-	* @param ] int $template Only messages from this template
+	* @param int $template Only messages from this template
 	*
 	* @return Array with all msg
 	*/
@@ -164,9 +191,10 @@
 		$conv_id = empty($conv_id)?'%%':$conv_id;
 		$msg_id = empty($msg_id)?'%%':$msg_id;
 		$template = empty($template)?'%%':$template;
-		$watson_msg = empty($watson_msg)?'%%':$watson_msg;
-		$watson_try = empty($watson_try)?'%%':$watson_try;
-		$is_read = empty($is_read)?'%%':$is_read;
+		$watson_msg = getType($watson_msg)!='boolean'?'%%':intval($watson_msg);
+		$watson_try = getType($watson_try)!='boolean'?'%%':intval($watson_try);
+		$is_read = getType($is_read)!='boolean'?'%%':intval($is_read);
+
 		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=0 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template AND watson_msg LIKE :watson_msg AND watson_try LIKE :watson_try AND is_read LIKE :is_read ORDER BY ID');
 		$statement->execute(array(':profile_id'=>$profile_id, ':conv_id'=>$conv_id, ':msg_id'=>$msg_id, ':template'=>$template, ':watson_msg'=>$watson_msg, ':watson_try'=>$watson_try, ':is_read'=>$is_read));
 		return $statement->rowCount()==0?null:$statement->fetchAll(PDO::FETCH_ASSOC);
@@ -323,7 +351,7 @@
 	function saveTemplate($msg){
 		global $db;
 		$statement = $db->prepare('INSERT INTO msg_template SET msg = :msg');
-		$statement->execute(array(':msg' => $msg));
+		$statement->execute(array(':msg' =>$msg));
 	}
 
 	/**
@@ -387,6 +415,11 @@
 		global $db;
 		$statement = $db->prepare('DELETE FROM '.$table.' WHERE ID=:id');
 		$statement->execute(array(':id'=>$id));
+
+		if($table == 'msg_template'){
+			// set all template values to 0
+			directQuery('UPDATE msg_conversation SET template_msg=0 WHERE template_msg='.$id);
+		}
 		return $statement->rowCount()==1;
 	}
 
