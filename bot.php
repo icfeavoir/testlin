@@ -36,7 +36,7 @@
             $countConnect = 0;
     	    while($sendConnect){
     	    	$result = $li->search_to_array($key_word, $page);
-                setAction('The bot is doing a search with this key word: '.$key_word.' (page '.$page.').');
+                setAction('The bot is doing a search with this key word: <b>'.$key_word.'</b> (page '.$page.').');
                 do_sleep();
     	    	// sending connnect request if not already sent
                 if(!empty($result)){
@@ -45,7 +45,7 @@
                     $key_words_count++; // new key word
                 }
     	    	foreach ($result as $profile_id) {
-                    setAction('The bot is sending a connect request to this ID: '.$profile_id);
+                    setAction('The bot found some users for the key word <b>'.$key_word.'</b> (page '.$page.').<br/>It is sending a connect request to this ID: '.$profile_id);
     	    		$already = $li->connectTo($profile_id);
                     if($already != null){   // if sent, else means that we already asked this user so we can skip it
                         $countConnect++;
@@ -56,7 +56,7 @@
                     $sendConnect=false;
                 }
                 $page++;
-    	    };&
+    	    }
             
     	    // NEW CONNECTIONS
             //check and save new connections  
@@ -82,16 +82,13 @@
             setAction('The bot is checking new unread conversations.');
             do_sleep();
             foreach ($unreadConv as $key => $conv) {
-                //if not already saved
-                if(count(getConversation($conv)) == 0){
-                    // saving all new msgs in database
-                    $msgs = $li->getAllMsg($conv);
-                    foreach ($msgs as $key => $msg) {
-                        setAction('The bot is saving in database all new messages.');
-                        $li->saveMsg($msg);
-                    }
-                    do_sleep();
+                // saving all new msgs in database
+                $msgs = $li->getAllMsg($conv);
+                foreach ($msgs as $key => $msg) {
+                    setAction('The bot is saving in database all new messages.');
+                    $li->saveMsg($msg);
                 }
+                do_sleep();
             }
 
             // all unread conversation in database watson didn't try to answer yet
@@ -101,7 +98,7 @@
                 if(in_array($value['conv_id'], array('6313350241940750337',))){ // !!!!!!!!!!!!!!!!!!!!!!!!!!
                     $last = end($conv);
                     if($last['by_bot']){
-                        setRead($conv['conv_id']);
+                        setRead($last['conv_id']);
                     }else{
                         setWatsonTry($last['msg_id']);
                         setAction('The bot is trying to answer a message with Watson.');

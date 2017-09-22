@@ -436,9 +436,9 @@
 			$cookie = preg_split('/\s+/', file_get_contents(ROOTPATH.'/cookie.txt'));
 			$linkedin = array_search('.www.linkedin.com', $cookie);
 			if($linkedin !== false && $cookie[$linkedin+1] == 'TRUE'){
-			    return true;
+			    return false;	// not detected
 			}else{
-			    return false;
+			    return true;
 			}
 
 		}
