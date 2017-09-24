@@ -187,11 +187,11 @@
 	* Save the msg sent from the bot to an user
 	*
 	*/
-	function saveMsgSent($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson_msg=0){
+	function saveMsgSent($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson_msg=0, $context=null){
 		global $db;
 		$date = gettype($date)=='string'?$date:date('Y-m-d G:i:s', $date);
-		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson_msg, is_read, date) VALUES (1, :profile_id, :conv, :msg_id, :template, :msg, :watson_msg, :read, :date)');
-		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson_msg'=>$watson_msg, ':read'=>true, ':date'=>$date));
+		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson_msg, is_read, watson_context, date) VALUES (1, :profile_id, :conv, :msg_id, :template, :msg, :watson_msg, :read, :context, :date)');
+		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson_msg'=>$watson_msg, ':read'=>true, ':context'=>$context, ':date'=>$date));
 	}
 
 
@@ -222,6 +222,7 @@
 		$statement->execute(array(':profile_id'=>$profile_id, ':conv_id'=>$conv_id, ':msg_id'=>$msg_id, ':template'=>$template, ':watson_msg'=>$watson_msg, ':watson_try'=>$watson_try, ':is_read'=>$is_read));
 		return $statement->rowCount()==0?null:$statement->fetchAll(PDO::FETCH_ASSOC);
 	}
+	
 	/**
 	* Save the msg received by the bot
 	*
@@ -282,6 +283,35 @@
 		global $db;
 		$statement = $db->prepare('UPDATE msg_conversation SET watson_try=:try WHERE msg_id=:msg_id');
 		$statement->execute(array(':try'=>$try, ':msg_id'=>$msg_id));
+	}
+
+	/**
+	* Get the last Watson context of a conversation
+	*
+	* @param string $conv_id
+	*
+	* @return array() The last context or null if no context created
+	*
+	*/
+	function getLastContext($conv_id){
+		global $db;
+		$statement = $db->prepare('SELECT watson_context FROM msg_conversation WHERE watson_context IS NOT NULL AND conv_id=:conv_id ORDER BY date DESC LIMIT 1');
+		$statement->execute(array(':conv_id'=>$conv_id));
+		return $statement->fetch()['watson_context'];
+	}
+
+	/**
+	* Change the Watson context of a msg
+	*
+	* @param string $msg_id The id of the message
+	*
+	* @param string $context The watson context
+	*
+	*/
+	function setContext($msg_id, $context){
+		global $db;
+		$statement = $db->prepare('UPDATE msg_conversation SET watson_context=:context WHERE msg_id=:msg_id');
+		$statement->execute(array(':try'=>$context, ':msg_id'=>$msg_id));
 	}
 
 	/* --------------------------------------- */

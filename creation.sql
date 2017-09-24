@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS `msg_conversation` (
 	`msg` text NOT NULL,
 	`watson_msg` boolean NOT NULL DEFAULT false,
 	`watson_try` boolean NOT NULL DEFAULT false,
+	`watson_context` text DEFAULT NULL,
 	`is_read` boolean NOT NULL DEFAULT false,
 	`date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

@@ -25,6 +25,8 @@
 			<p class="alert"></p>
 		</div>
 
+		<div><button id="back" class="btn btn-sm btn-primary"><i class="fa fa-arrow-left"></i> Back</button></div>
+
 		<p><b>Message: </b><br/><span class="to-load" id="getMessage"></span></p>
 		<br/>
 		<table class="table table-md table-striped table-hover unique-template-manager">
@@ -52,6 +54,10 @@ $(document).ready(function(){
 		post({'action':$(this).attr('id'), 'template':template}, function(resp){
 			tag.html(resp.value);
 		});
+	});
+
+	$('#back').click(function(){
+		openModal('template');
 	});
 });
 </script>

@@ -14,10 +14,11 @@ function showBar(isSuccess, msg){
 	setTimeout(function(){$('.ajax-response').css('visibility','hidden').css('opacity', 0)}, 4000);
 }
 
-function openModal(file, data={}){
+function openModal(file, data={}, newModal=false){
 	$.post( file+".php", data).done(function( resp ){
 		$('#modal .modal-content .modal-body').html(resp);
 		$('#modal .modal-content .modal-title').html($(resp).filter('title').text());
-		$('#modal').modal();
+		if(newModal)
+			$('#modal').modal();
 	});
 }

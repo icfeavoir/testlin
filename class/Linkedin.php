@@ -218,7 +218,7 @@
 			return $search_result;
 		}
 
-		public function sendMsg($profile_id, $msg, $watson=0){
+		public function sendMsg($profile_id, $msg, $watson=0, $context=null){
 			if(is_array($msg)){	// if send template, to user with the getTemplate($id) function
 				$template = $msg['ID'];
 				$msg = str_replace('<br />', '\n', $msg['msg']);
@@ -246,7 +246,7 @@
 			$this->markConversationAsRead($conv_id);
 
 			//saving in DB
-			saveMsgSent($profile_id, $msg, $conv_id, $msg_id, time(), $template, $watson);
+			saveMsgSent($profile_id, $msg, $conv_id, $msg_id, time(), $template, $watson, $context);
 
 			return $sending;
 		}

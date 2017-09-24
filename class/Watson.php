@@ -12,7 +12,7 @@ class Watson{
 		curl_setopt($this->_ch, CURLOPT_POST, 1);
 	}
 
-	public function sendMsg($msg = '', $userName = ''){
+	public function sendMsg($msg = '', $context=null, $userName = ''){
 		$headers = array();
 		$headers[] = "Content-Type: application/json";
 		$headers[] = "Accept: application/json";
@@ -23,6 +23,9 @@ class Watson{
 				'text'=>$msg,
 			),
 		);
+		if($context != null){
+			$msg['context'] = $context;
+		}
 		$msg = json_encode($msg);
 
 		curl_setopt($this->_ch, CURLOPT_POSTFIELDS, $msg);
@@ -31,12 +34,11 @@ class Watson{
 
 	public function getResponse($json){
 		$resp = gettype($json)=='string'?json_decode($json):$json;
-		return $resp->output->text[0];
+		return $resp;
 	}
 
-	public function chat($msg){
-		$answer = $this->getResponse($this->sendMsg($msg));
-		return $answer!=''?$answer:false;
+	public function chat($msg, $context=null){
+		return $this->getResponse($this->sendMsg($msg, $context));
 	}
 
 	public function execute(){

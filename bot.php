@@ -8,14 +8,14 @@
     	if($time != null){
     		sleep($time);
     	}else{
-	    	$max_time_sleep = 60; //seconds
+	    	$max_time_sleep = 30; //seconds
 	    	sleep(rand(1, $max_time_sleep));
 	    }
     }
 
     // INITIALIZATION
     $key_words_count = 0;
-    $page = 51;
+    $page = 1;
     $asked_connect_max = 10;
 
     setAction('The bot is connecting to the account.');
@@ -49,7 +49,7 @@
     	    		$already = $li->connectTo($profile_id);
                     if($already != null){   // if sent, else means that we already asked this user so we can skip it
                         $countConnect++;
-                        setAction('The bot found some users for the key word <b>'.$key_word.'</b> (page '.$page.').<br>It is sending a connect request to this ID: '.$profile_id.'.<br>'.($asked_connect_max-$countConnect).' more and it will do something else.');
+                        setAction('The bot found some users for the key word <b>'.$key_word.'</b> (page '.$page.').<br>It is sending a connect request to this ID: '.$profile_id.'.');
         	    		do_sleep();
                     }else{
                         setAction('Connection request already sent to those users.');
@@ -92,26 +92,26 @@
                     $li->saveMsg($msg);
                 }
                 do_sleep();
-            }
+                }
 
             // all unread conversation in database watson didn't try to answer yet
             $convToAnswer = getMsgReceived(null, null, null, null, null, false, false);
             foreach ($convToAnswer as $key => $value) {
                 $conv = getConversation($value['conv_id']);
-                if(in_array($value['conv_id'], array('6313350241940750337',))){ // !!!!!!!!!!!!!!!!!!!!!!!!!!
+if(in_array($value['conv_id'], array('6313350241940750337',))){ // !!!!!!!!!!!!!!!!!!!!!!!!!!
                     $last = end($conv);
                     if($last['by_bot']){
                         setRead($last['conv_id']);
                     }else{
                         setWatsonTry($last['msg_id']);
                         setAction('The bot is trying to answer a message with Watson.');
-                        $watsonAnswer = $watson->chat($last['msg']);
-                        if($watsonAnswer != false){    // watson can answer
-                            $li->sendMsg($last['profile_id'], $watsonAnswer, true);
+                        $watsonAnswer = $watson->chat($last['msg'], unserialize(getLastContext($last['conv_id'])));
+                        if(isset($watsonAnswer->output->text[0])){    // watson can answer
+                            $li->sendMsg($last['profile_id'], $watsonAnswer->output->text[0], true, serialize($watsonAnswer->context));
                         }
                         do_sleep();
                     }
-                }
+}
             }
 	    }else{
             if(!getIsOn()){
