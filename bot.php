@@ -4,38 +4,36 @@
     require_once('const.php');
     require_once('db.php');
 
-    function do_sleep($time=null){
-    	if($time != null){
-    		sleep($time);
-    	}else{
-	    	$max_time_sleep = 30; //seconds
-	    	sleep(rand(1, $max_time_sleep));
-	    }
-    }
-
     // INITIALIZATION
     $key_words_count = 0;
-    $page = 1;
+    $page = 87;
     $asked_connect_max = 10;
 
     setAction('The bot is connecting to the account.');
-    $li = new Linkedin(USERNAME, PASSWORD);
-    $li->close();   //save cookies
     $li = new Linkedin();
 
     $watson = new Watson(WATSON_USERNAME, WATSON_PASSWORD, WATSON_CONVERSATION);
 
     while(true){
-	    if(getIsOn() && !$li->getBotDetected() && intval(date('G', time())) >= 7 && intval(date('H', time())) < 23){ // good hour :)
+	    if(getIsOn() && !checkBotDetected() && intval(date('G', time())) >= 7 && intval(date('H', time())) < 23){ // good hour :)
+            
+            // for each iteration, we close curl to save cookie and we re open it to know if the bot is detected.
+            $li->close();
+            $li = new Linkedin();
+            if(checkBotDetected()){goto BotDetected;}
+
     	    $key_words_list = getKeyWords();
     	    // SEND CONNECT REQUESTS
     	    $key_words_count %= count($key_words_list);
     	    $key_word = $key_words_list[$key_words_count]['key_word'];
+            $key_word_id = $key_words_list[$key_words_count]['ID'];
     	    
     	    // search people with this key word
             $sendConnect = true;
             $countConnect = 0;
     	    while($sendConnect){
+                if(checkBotDetected()){goto BotDetected;}
+
     	    	$result = $li->search_to_array($key_word, $page);
                 setAction('The bot is doing a search with this key word: <b>'.$key_word.'</b> (page '.$page.').');
                 do_sleep();
@@ -43,6 +41,7 @@
                 if(count($result)==0){
                     $page = 1;  //reinit;
                     $sendConnect = false;
+                    setKeyWordDone($key_word_id);
                     $key_words_count++; // new key word
                 }
     	    	foreach ($result as $profile_id) {
@@ -60,6 +59,8 @@
                 }
                 $page++;
     	    }
+
+            if(checkBotDetected()){goto BotDetected;}
             
     	    // NEW CONNECTIONS
             //check and save new connections  
@@ -70,15 +71,26 @@
                 array_push($newConnections, $new);
                 setAction('The bot is accepting the connection requests that other users sent.');
             }
+
+            if(checkBotDetected()){goto BotDetected;}
+
             //send msg to new connections
     		foreach ($newConnections as $key => $profile_id) {
+                $userInfos = $li->getUserInformations($profile_id);
+                do_sleep();
+                $defaultContext = $watson->chat('BotYoupicDefaultStart')->context;
+                $defaultContext->firstName = $userInfos['firstName'];
+                $defaultContext->lastName = $userInfos['lastName'];
+                $defaultContext->job = $userInfos['job'];
     			// send msg to new connections
                 $templates = getAllTemplates(true);
                 $selectedTemplate = rand(0, count($templates)-1);
                 setAction('The bot is sending default message n°'.$templates[$selectedTemplate]['ID'].' to this user ID: '.$profile_id.'.');   
-                $li->sendMsg($profile_id, str_replace('<br />', '\n', $templates[$selectedTemplate]), 0, $watson->chat('BotYoupicDefaultStart')->context);
+                $li->sendMsg($profile_id, str_replace('<br />', '\n', $templates[$selectedTemplate]), 0, serialize($defaultContext));
     			do_sleep();
     		}
+
+            if(checkBotDetected()){goto BotDetected;}
 
             // CHECK UNREAD CONVERSATION in LinkedIn
             $unreadConv = $li->getUnreadConversations();
@@ -92,44 +104,53 @@
                     $li->saveMsg($msg);
                 }
                 do_sleep();
-                }
+            }
+
+            if(checkBotDetected()){goto BotDetected;}
 
             // all unread conversation in database watson didn't try to answer yet
             $convToAnswer = getMsgReceived(null, null, null, null, null, false, false);
-            foreach ($convToAnswer as $key => $value) {
-                $conv = getConversation($value['conv_id']);
-if(in_array($value['conv_id'], array('6313350241940750337',))){ // !!!!!!!!!!!!!!!!!!!!!!!!!!
-                    $last = end($conv);
-                    if($last['by_bot']){
-                        setRead($last['conv_id']);
-                    }else{
-                        setWatsonTry($last['msg_id']);
-                        setAction('The bot is trying to answer a message with Watson.');
-                        $watsonAnswer = $watson->chat($last['msg'], unserialize(getLastContext($last['conv_id'])));
-                        if(isset($watsonAnswer->output->text[0])){    // watson can answer
-                            $li->sendMsg($last['profile_id'], $watsonAnswer->output->text[0], true, serialize($watsonAnswer->context));
+            if(is_array($convToAnswer) || is_object($convToAnswer)){
+                foreach ($convToAnswer as $key => $value) {
+                    $conv = getConversation($value['conv_id']);
+                    if(in_array($value['conv_id'], array('6313350241940750337',))){ // !!!!!!!!!!!!!!!!!!!!!!!!!!
+                        $last = end($conv);
+                        if($last['by_bot']){    // should not append but still...
+                            setRead($last['conv_id']);
+                        }else{
+                            setAction('The bot is trying to answer a message with Watson.');
+                            $watsonAnswer = $watson->chat($last['msg'], unserialize(getLastContext($last['conv_id'])));
+                            if(isset($watsonAnswer->output->text[0])){    // watson can answer
+                                $li->sendMsg($last['profile_id'], $watsonAnswer->output->text[0], true, serialize($watsonAnswer->context));
+                                do_sleep();
+                            }else{  // we put the context to "anything else" to avoid new bot msg for this user
+                                setContext($last['msg_id'], serialize($watson->chat('anything_else')->context));
+                            }
+                            setWatsonTry($last['msg_id']);
                         }
-                        do_sleep();
-                    }
-}
+                    }               
+                }
             }
+
+            BotDetected:    //are for goto botDetected and start again the loop
+
 	    }else{
-            if(!getIsOn()){
-                setAction('Please turn me on!');
-            }else if($li->getBotDetected()){   // cookie not good!
+            if(checkBotDetected()){   // cookie not good!
                 setIsOn(false);
                 setIsDisconnect(true);
-                setAction('The bot is disconnected, try to reconnect...');
+                setAction('The bot is disconnected but tries to reconnect...');
                 $li = new Linkedin(USERNAME, PASSWORD);
                 $li->close();   // save cookies
                 $li = new Linkedin();
-                if($li->getBotDetected()){  // can't reconnect
-                    setAction('The bot is disconnected, you have to reconnect!.');
+                if(checkBotDetected()){  // can't reconnect
+                    setAction('The bot is disconnected, you have to reconnect (with a human way)!');
                 }else{
                     setAction('Reconnected with success!');
                     setIsDisconnect(false);
                     setIsOn(true);
                 }
+            }else if(!getIsOn()){
+                setAction('Please turn me on!');
             }else{
                 setAction('The bot is sleeping from 10 PM until 7 AM');
             }
@@ -141,6 +162,22 @@ if(in_array($value['conv_id'], array('6313350241940750337',))){ // !!!!!!!!!!!!!
 
     $watson->close();
     $li->close();
+
+    function do_sleep($time=null){
+        if($time != null){
+            sleep($time);
+        }else{
+            $max_time_sleep = 30; //seconds
+            sleep(rand(1, $max_time_sleep));
+        }
+    }
+
+    function checkBotDetected(){
+        global $li;
+        $li->close();
+        $li = new Linkedin();
+        return $li->getBotDetected();
+    }
 
     /*
 		ALGO

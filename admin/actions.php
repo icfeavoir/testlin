@@ -45,7 +45,7 @@
 	// KEY WORDS
 	else if($_POST['action'] == 'getKeyWords'){
 		$json['showMsg'] = false;
-		$json['keyWords'] = getKeyWords();
+		$json['keyWords'] = getKeyWords(true);
 	}
 	else if($_POST['action'] == 'saveKeyWord'){
 		saveKeyWord($_POST['val']);
@@ -69,7 +69,7 @@
 	else if($_POST['action'] == 'unreadConv'){
 		$json['showMsg'] = false;
 		// all conversations not read and where watson try but couldn't answer
-		$json['unreadConv'] = getMsgReceived('%%', '%%', '%%', '%%', '%%', '%%', false);
+		$json['unreadConv'] = getMsgReceived(null, null, null, null, null, null, false);
 	}
 	// RANDOM CONVERSATION
 	else if($_POST['action'] == 'getMsgConv'){
@@ -86,6 +86,7 @@
 		$json['showMsg'] = isset($_POST['show']);
 		$json['msg'] = 'Conversation marked as read!';
 		$msg = setRead($_POST['conv']);
+		resetContext($_POST['conv']);
 	}
 	// SEND MESSAGE
 	else if($_POST['action'] == 'sendMsg'){

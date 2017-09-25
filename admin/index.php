@@ -40,6 +40,8 @@
 					<div class="alert alert-info"><p class="description">Here you can add or delete key words the bot will use to search people</p></div>
 					<input class="form-control" type="text" placeholder="Key word" id="key-word" />
 					<button class="btn btn-sm btn-primary" type="button" id="saveKeyWord">Save key word</button>
+
+					<div class="alert alert-info"><p class="description">If a key-word is<span class="alert-warning"> like this </span>, that means that the bot already searched all users with this key word and will not use it again. If you want to retry with a <i>done</i> key word, just delete it and save it again.</p></div>
 					<div class="key-words-list">
 						<ul>
 						</ul>
@@ -57,7 +59,7 @@
 				</div>
 			</div>
 			<div class="column column-2 conversation">
-				<h6 class="title"><span id="nbUnreadConv"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i></span> unread conversations - <a id="random-conv">Another random unread conversation!</a></h6>
+				<h6 class="title"><span id="nbUnreadConv"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i></span> unread messages - <a id="random-conv">Another random unread conversation!</a></h6>
 				<div class="content">
 					<div class="infos-user alert-info">
 						<a class="link-profile" target="_blank" href="#">
@@ -117,10 +119,16 @@ $(document).ready(function(){
 	var disconnect = false;
 
 	function botDisconnect(isDisconnect){
+		// global var
 		disconnect = isDisconnect;
+
 		$('h3.disconnect').prop('hidden', !isDisconnect);
-		$('#mark-read').prop('disabled', isDisconnect);
-		$('#send-msg').prop('disabled', isDisconnect);
+		$('#on-off-btn').prop('checked', !isDisconnect);
+
+		if(isDisconnect){
+			$('#mark-read').prop('disabled', true);
+			$('#send-msg').prop('disabled', true);
+		}
 	}
 
 	function saveKeyWord(){
@@ -299,7 +307,8 @@ $(document).ready(function(){
 	// key words
 	post({'action': 'getKeyWords'}, function(resp){
 		$.each(resp.keyWords, function(key, value){
-			$('.key-words-list ul').append('<li class="alert-info"><span class="key-word-item">'+value.key_word+'</span><i class="fa fa-times-circle-o" aria-hidden="true" id='+value.ID+'></i></li>');
+			var colorClass = value.done==1?'alert-warning':'alert-info';
+			$('.key-words-list ul').append('<li class="'+colorClass+'"><span class="key-word-item">'+value.key_word+'</span><i class="fa fa-times-circle-o" aria-hidden="true" id='+value.ID+'></i></li>');
 			// add the click listener to the new <i>
 			$('i[id="'+value.ID+'"]').click(function(){
 				var id = $(this).attr('id');

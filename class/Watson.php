@@ -12,7 +12,7 @@ class Watson{
 		curl_setopt($this->_ch, CURLOPT_POST, 1);
 	}
 
-	public function sendMsg($msg = '', $context=null, $userName = ''){
+	public function sendMsg($msg = '', $context=null){
 		$headers = array();
 		$headers[] = "Content-Type: application/json";
 		$headers[] = "Accept: application/json";
@@ -27,7 +27,6 @@ class Watson{
 			$msg['context'] = $context;
 		}
 		$msg = json_encode($msg);
-
 		curl_setopt($this->_ch, CURLOPT_POSTFIELDS, $msg);
 		return json_decode($this->execute());
 	}

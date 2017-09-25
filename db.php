@@ -311,7 +311,19 @@
 	function setContext($msg_id, $context){
 		global $db;
 		$statement = $db->prepare('UPDATE msg_conversation SET watson_context=:context WHERE msg_id=:msg_id');
-		$statement->execute(array(':try'=>$context, ':msg_id'=>$msg_id));
+		$statement->execute(array(':context'=>$context, ':msg_id'=>$msg_id));
+	}
+
+	/**
+	* Reset the context
+	*
+	* @param string $conv_id The conversation
+	*
+	*/
+	function resetContext($conv_id){
+		global $db;
+		$statement = $db->prepare('UPDATE msg_conversation SET watson_context=NULL WHERE conv_id=:conv_id');
+		$statement->execute(array(':conv_id'=>$conv_id));
 	}
 
 	/* --------------------------------------- */
@@ -361,12 +373,19 @@
 	/**
 	* Get all key words saved
 	*
+	* @param boolean $all To get all key words
+	*
 	* @return array of key_words
 	*/
-	function getKeyWords(){
+	function getKeyWords($all=false){
 		global $db;
-		$statement = $db->prepare('SELECT * FROM key_word_list');
-		$statement->execute();
+		if($all){
+			$statement = $db->prepare('SELECT * FROM key_word_list');
+			$statement->execute();
+		}else{
+			$statement = $db->prepare('SELECT * FROM key_word_list WHERE done=:done');
+			$statement->execute(array(':done'=>0));
+		}
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 
@@ -392,6 +411,21 @@
 		global $db;
 		$statement = $db->prepare('DELETE FROM key_word_list WHERE ID = :key_word');
 		$statement->execute(array(':key_word' => $id));
+	}
+
+	/**
+	* Set a key word as done
+	*
+	* @param int $id The key word id
+	*
+	* @param boolean $done (optional) Default true
+	*
+	*/
+	function setKeyWordDone($id, $done=true){
+		global $db;
+		if(!$done){$done=0;}
+		$statement = $db->prepare('UPDATE key_word_list SET done=:done WHERE ID = :key_word');
+		$statement->execute(array(':done'=>$done, ':key_word' => $id));
 	}
 
 

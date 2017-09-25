@@ -218,6 +218,17 @@
 			return $search_result;
 		}
 
+		/**
+		* Send a message to an user
+		*
+		* @param string $profile_id The user profile
+		*
+		* @param string $msg The msg to send or the template (as an array)
+		*
+		* @param bool $watson (optional) True if waton msg
+		*
+		* @param string $context (optional) The watson context (STRING AND NOT OBJECT !)
+		*/
 		public function sendMsg($profile_id, $msg, $watson=0, $context=null){
 			if(is_array($msg)){	// if send template, to user with the getTemplate($id) function
 				$template = $msg['ID'];
@@ -331,7 +342,7 @@
 		/**
 		* @param @createdBefore (optional) a date in LinkedIn format
 		*/
-		function getAllConversations($createdBefore=null){	// to use verify carrefully, could be long...
+		function getAllConversations($createdBefore=null){	// to use carrefully, could be long...
 			$headers = $this->getHeaders();
 			$createdBefore = $createdBefore??$this->timestampToLinkedinDate(time());
 

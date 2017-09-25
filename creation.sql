@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS `msg_conversation` (
 
 CREATE TABLE IF NOT EXISTS `key_word_list` (
 	`ID` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
-	`key_word` varchar(255) NOT NULL
+	`key_word` varchar(255) NOT NULL,
+	`done` boolean NOT NULL DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS `msg_template` (
