@@ -76,7 +76,7 @@
                 $templates = getAllTemplates(true);
                 $selectedTemplate = rand(0, count($templates)-1);
                 setAction('The bot is sending default message n°'.$templates[$selectedTemplate]['ID'].' to this user ID: '.$profile_id.'.');   
-                $li->sendMsg($profile_id, str_replace('<br />', '\n', $templates[$selectedTemplate]), 0, $watson->chat('')->context);
+                $li->sendMsg($profile_id, str_replace('<br />', '\n', $templates[$selectedTemplate]), 0, $watson->chat('BotYoupicDefaultStart')->context);
     			do_sleep();
     		}
 
