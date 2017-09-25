@@ -38,6 +38,8 @@
 		$json['msg'] = 'The bot is now '.($_POST['state']==1?'On':'Off');
 		if($_POST['state'])
 			setAction('The bot is starting...');
+		else
+			setAction('The bot is off.');
 		setIsOn($_POST['state']?1:0);
 	}
 	// KEY WORDS
@@ -122,7 +124,7 @@
 	}
 	else if($_POST['action'] == 'getNumberReceived'){
 		$json['showMsg'] = false;
-		$number = count(getMsgReceived(null, null, null, $_POST['template'])??[]);
+		$number = count(directQuery('SELECT DISTINCT conv_id from msg_conversation WHERE by_bot=false AND template_msg='.$_POST['template'])??[]);
 		$total = count(directQuery('SELECT ID FROM msg_conversation WHERE by_bot=true AND template_msg='.$_POST['template']));
 		$percent = $total!=0?round($number*100/$total):0;
 		$json['value'] = $number.' ('.$percent.'% of messages sent with this template had a response)';
