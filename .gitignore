@@ -1,5 +1,7 @@
 const.php
 cookie.txt
-index\.php
 
 id
+
+index.php
+!admin/index.php
