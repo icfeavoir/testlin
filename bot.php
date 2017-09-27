@@ -46,13 +46,16 @@
                         $key_words_count++; // new key word
                     }
         	    	foreach ($result as $profile_id) {
-        	    		$already = $li->connectTo($profile_id);
-                        if($already != null){   // if sent, else means that we already asked this user so we can skip it
-                            $countConnect++;
-                            setAction('The bot found some users for the key word <b>'.$key_word.'</b> (page '.$page.').<br>It is sending a connect request to this ID: '.$profile_id.'.');
-            	    		do_sleep();
-                        }else{
-                            setAction('Connection request already sent to those users.');
+                        $friend = count(directQuery('SELECT ID FROM connect_list WHERE profile_id="'.$profile_id.'"')) == 0;
+                        if(!$friend){   //not already friend
+            	    		$already = $li->connectTo($profile_id);
+                            if($already != null){   // if sent, else means that we already asked this user so we can skip it
+                                $countConnect++;
+                                setAction('The bot found some users for the key word <b>'.$key_word.'</b> (page '.$page.').<br>It is sending a connect request to this ID: '.$profile_id.'.');
+                	    		do_sleep();
+                            }else{
+                                setAction('Connection request already sent to those users.');
+                            }
                         }
         	    	}
                     if($countConnect>$asked_connect_max){  // stop connect, let's chat and we continue next time so page don't change
@@ -77,8 +80,12 @@
 
             if(checkBotDetected()){goto BotDetected;}
 
-            //send msg to new connections
+            //send default msg to new connections
     		foreach ($newConnections as $key => $profile_id) {
+                if(count(directQuery('SELECT * FROM msg_conversation WHERE profile_id="'.$profile_id.'"') != 0){
+                    break;
+                }
+
                 $userInfos = $li->getUserInformations($profile_id);
                 do_sleep();
                 $defaultContext = $watson->chat('BotYoupicDefaultStart')->context;
@@ -116,7 +123,7 @@
             if(is_array($convToAnswer) || is_object($convToAnswer)){
                 foreach ($convToAnswer as $key => $value) {
                     $conv = getConversation($value['conv_id']);
-                if($value['conv_id'] == '6313350241940750337'){
+                if($value['conv_id'] == '6318828055766855680'){ // !!!!!!
                     $last = end($conv);
                     if($last['by_bot']){    // should not append but still...
                         setRead($last['conv_id']);
@@ -181,8 +188,8 @@
         if($time != null){
             sleep($time);
         }else{
-            $max_time_sleep = 60; //seconds
-            sleep(rand(5, $max_time_sleep));
+            $max_time_sleep = 300; //seconds
+            sleep(rand(30, $max_time_sleep));
         }
     }
 
