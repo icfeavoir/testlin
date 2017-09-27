@@ -30,9 +30,7 @@
 			$newContext->job = 'YouPic';
 		}
 		file_put_contents('context', serialize($newContext));
-		if(count($resp->output->text) == 0){
-			echo 'I can\'t answer :(';
-		}else{
+		if(count($resp->output->text) > 0){
 			echo $resp->output->text[0];
 		}
 	}
