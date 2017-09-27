@@ -24,41 +24,43 @@
 
     	    $key_words_list = getKeyWords();
     	    // SEND CONNECT REQUESTS
-    	    $key_words_count %= count($key_words_list);
-    	    $key_word = $key_words_list[$key_words_count]['key_word'];
-            $key_word_id = $key_words_list[$key_words_count]['ID'];
-    	    
-    	    // search people with this key word
-            $sendConnect = true;
-            $countConnect = 0;
-    	    while($sendConnect){
-                if(checkBotDetected()){goto BotDetected;}
+            if(count($key_words_list) > 0){
+                $key_words_count %= count($key_words_list);
+        	    $key_word = $key_words_list[$key_words_count]['key_word'];
+                $key_word_id = $key_words_list[$key_words_count]['ID'];
+        	    
+        	    // search people with this key word
+                $sendConnect = true;
+                $countConnect = 0;
+        	    while($sendConnect){
+                    if(checkBotDetected()){goto BotDetected;}
 
-    	    	$result = $li->search_to_array($key_word, $page);
-                setAction('The bot is doing a search with this key word: <b>'.$key_word.'</b> (page '.$page.').');
-                do_sleep();
-    	    	// sending connnect request if not already sent
-                if(count($result)==0){
-                    $page = 1;  //reinit;
-                    $sendConnect = false;
-                    setKeyWordDone($key_word_id);
-                    $key_words_count++; // new key word
-                }
-    	    	foreach ($result as $profile_id) {
-    	    		$already = $li->connectTo($profile_id);
-                    if($already != null){   // if sent, else means that we already asked this user so we can skip it
-                        $countConnect++;
-                        setAction('The bot found some users for the key word <b>'.$key_word.'</b> (page '.$page.').<br>It is sending a connect request to this ID: '.$profile_id.'.');
-        	    		do_sleep();
-                    }else{
-                        setAction('Connection request already sent to those users.');
+        	    	$result = $li->search_to_array($key_word, $page);
+                    setAction('The bot is doing a search with this key word: <b>'.$key_word.'</b> (page '.$page.').');
+                    do_sleep();
+        	    	// sending connnect request if not already sent
+                    if(count($result)==0){
+                        $page = 1;  //reinit;
+                        $sendConnect = false;
+                        setKeyWordDone($key_word_id);
+                        $key_words_count++; // new key word
                     }
-    	    	}
-                if($countConnect>$asked_connect_max){  // stop connect, let's chat and we continue next time so page don't change
-                    $sendConnect=false;
-                }
-                $page++;
-    	    }
+        	    	foreach ($result as $profile_id) {
+        	    		$already = $li->connectTo($profile_id);
+                        if($already != null){   // if sent, else means that we already asked this user so we can skip it
+                            $countConnect++;
+                            setAction('The bot found some users for the key word <b>'.$key_word.'</b> (page '.$page.').<br>It is sending a connect request to this ID: '.$profile_id.'.');
+            	    		do_sleep();
+                        }else{
+                            setAction('Connection request already sent to those users.');
+                        }
+        	    	}
+                    if($countConnect>$asked_connect_max){  // stop connect, let's chat and we continue next time so page don't change
+                        $sendConnect=false;
+                    }
+                    $page++;
+        	    }
+            }
 
             if(checkBotDetected()){goto BotDetected;}
             
