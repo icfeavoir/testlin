@@ -19,8 +19,6 @@
 		<div class="container">
 			<h2>WATSON TEST</h2>
 			<h3>user: <b>Gustaf Hector</b></h3>
-			<br>
-			<button class="btn btn-sm btn-primary" id="sendTemplate">Send a random template to you !</button>
 			<br><br>
 			<h4>CONVERSATION</h4>
 			<br>
@@ -33,6 +31,10 @@
 			<div class="answer-form">
 				<input type="text" class="form-control" id="answer-conv-msg" rows="5" /><br/>
 				<button class="btn btn-primary btn-md btn-block" id="send-msg">Send</button>
+				<br>
+				<button class="btn btn-sm btn-warning" id="sendTemplate">Send a random template to you !</button>
+				<br>
+				<button class="btn btn-sm btn-danger" id="reset">Reset and try again</button>
 			</div>
 		</div>
 	</body>
@@ -76,6 +78,11 @@ $(document).ready(function(){
 			genContext('getResponse', text);
 		}
 	});
+
+	$('#reset').click(function(){
+		genContext('reset');
+		$('.conv-msg').html('');
+	})
 
 	genContext('reset');
 });
