@@ -176,8 +176,8 @@
         if($time != null){
             sleep($time);
         }else{
-            $max_time_sleep = 30; //seconds
-            sleep(rand(1, $max_time_sleep));
+            $max_time_sleep = 60; //seconds
+            sleep(rand(5, $max_time_sleep));
         }
     }
 
