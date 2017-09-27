@@ -24,7 +24,7 @@
 			</div>
 			<hr/><br/>
 			<div class="answer-form">
-				<input placeholder="What do you want to test?" type="text" class="form-control" id="answer-conv-msg" rows="5" /><br/>
+				<input autofocus placeholder="What do you want to test?" type="text" class="form-control" id="answer-conv-msg" rows="5" /><br/>
 				<button class="btn btn-primary btn-md btn-block" id="send-msg">Send</button>
 				<br><br>
 				<button class="btn btn-block btn-warning" id="sendTemplate">Send a random template to you !</button>
@@ -65,6 +65,7 @@ $(document).ready(function(){
 			newMsg('bot', templates[r]['msg']);
 		});
 		genContext('init');
+		$('#answer-conv-msg').focus();
 	});
 
 	$('#send-msg').click(function(){
@@ -74,12 +75,25 @@ $(document).ready(function(){
 			$('#answer-conv-msg').val("");
 			genContext('getResponse', text);
 		}
+		$('#answer-conv-msg').focus();
 	});
 
 	$('#reset').click(function(){
 		genContext('reset');
 		$('.conv-msg').html('');
+		$('#answer-conv-msg').focus();
 	})
+
+	$('#answer-conv-msg').keyup(function(e){
+		if(e.keyCode == 13){
+			var text = $('#answer-conv-msg').val();
+			if(text !== ''){
+				newMsg('Me', text);
+				$('#answer-conv-msg').val("");
+				genContext('getResponse', text);
+			}
+		}
+	});
 
 	genContext('reset');
 });
