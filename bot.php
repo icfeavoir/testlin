@@ -67,8 +67,9 @@
     		$newConnections = $li->checkNewConnections();
             setAction('The bot is saving all users who accepted the connection.');
             // accept connection requests
-            if($new = $li->acceptLastConnectionRequest()){   // will add if not null -> new connection
-                array_push($newConnections, $new);
+            $new = $li->acceptLastConnectionRequest();
+            if($new != null){   // will add if not null -> new connection
+                $newConnections = array_merge($newConnections, $new);
                 setAction('The bot is accepting the connection requests that other users sent.');
             }
 
