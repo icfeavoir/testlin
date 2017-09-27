@@ -123,9 +123,9 @@ $(document).ready(function(){
 		disconnect = isDisconnect;
 
 		$('h3.disconnect').prop('hidden', !isDisconnect);
-		$('#on-off-btn').prop('checked', !isDisconnect);
 
 		if(isDisconnect){
+			$('#on-off-btn').prop('checked', false);
 			$('#mark-read').prop('disabled', true);
 			$('#send-msg').prop('disabled', true);
 		}
@@ -157,7 +157,6 @@ $(document).ready(function(){
 
 		// bot on off
 		post({'action': 'isOn'}, function(resp){
-			console.log(resp.isOn);
 			$('#on-off-btn').prop('checked', resp.isOn);
 			$('#bot-state').text(resp.isOn?'On':'Off');
 		});
