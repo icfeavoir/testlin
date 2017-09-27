@@ -125,9 +125,9 @@
                         if($context === null){
                             $userInfos = $li->getUserInformations($last['profile_id']);
                             do_sleep();
-                            $defaultContext->firstName = $userInfos['firstName'];
-                            $defaultContext->lastName = $userInfos['lastName'];
-                            $defaultContext->job = $userInfos['job'];
+                            // $context->firstName = $userInfos['firstName'];
+                            // $context->lastName = $userInfos['lastName'];
+                            // $context->job = $userInfos['job'];
                         }
                         $watsonAnswer = $watson->chat($last['msg'], $context);
                         if(isset($watsonAnswer->output->text[0])){    // watson can answer
