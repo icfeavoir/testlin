@@ -6,7 +6,7 @@
 
     // INITIALIZATION
     $key_words_count = 0;
-    $page = 87;
+    $page = 1;
     $asked_connect_max = 10;
 
     setAction('The bot is connecting to the account.');
