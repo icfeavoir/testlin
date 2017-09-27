@@ -24,7 +24,7 @@
 		<h1 class="text-center linkedin-color"><i class="fa fa-linkedin-square" aria-hidden="true"></i> LinkedIn Bot Admin Interface</h1>
 
 			<h3 class="text-center alert alert-danger disconnect" hidden=true>The bot is disconnected!</span></h3>
-
+			<a href="watson_test.php">Watson test interface</a>
 		<div class="onOffBtn text-center">
 			<label class="switch">
 				<input id="on-off-btn" type="checkbox">
