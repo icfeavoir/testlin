@@ -32,9 +32,9 @@
 				<input type="text" class="form-control" id="answer-conv-msg" rows="5" /><br/>
 				<button class="btn btn-primary btn-md btn-block" id="send-msg">Send</button>
 				<br>
-				<button class="btn btn-sm btn-warning" id="sendTemplate">Send a random template to you !</button>
-				<br>
-				<button class="btn btn-sm btn-danger" id="reset">Reset and try again</button>
+				<button class="btn btn-block btn-warning" id="sendTemplate">Send a random template to you !</button>
+				<br><br/>
+				<button class="btn btn-block btn-danger" id="reset">Reset and try again</button>
 			</div>
 		</div>
 	</body>
