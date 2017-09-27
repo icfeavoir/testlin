@@ -60,4 +60,3 @@ CREATE TABLE IF NOT EXISTS `msg_template` (
 INSERT INTO bot_on_off (isOn) SELECT 0 WHERE NOT EXISTS (SELECT * FROM bot_on_off);
 INSERT INTO bot_disconnect (is_disconnect) SELECT 0 WHERE NOT EXISTS (SELECT * FROM bot_disconnect);
 INSERT INTO msg_template (msg) SELECT 'YouPic' WHERE NOT EXISTS (SELECT * FROM msg_template);
-INSERT INTO bot_action (action) SELECT 'Nothing' WHERE NOT EXISTS (SELECT * FROM bot_action);
