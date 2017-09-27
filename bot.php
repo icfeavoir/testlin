@@ -144,12 +144,15 @@
             BotDetected:    //are for goto botDetected and start again the loop
 
 	    }else{
-            if(checkBotDetected()){   // cookie not good!
+            if(!getIsOn()){
+                setAction('Please turn me on!');
+            }else if(checkBotDetected()){   // cookie not good!
                 setIsOn(false);
                 setIsDisconnect(true);
                 setAction('The bot is disconnected but tries to reconnect...');
+                // try to reconnect
                 $li = new Linkedin(USERNAME, PASSWORD);
-                $li->close();   // save cookies
+                $li->close();   // save cookies and see if connected
                 $li = new Linkedin();
                 if(checkBotDetected()){  // can't reconnect
                     setAction('The bot is disconnected, you have to reconnect (with a human way)!');
@@ -158,8 +161,6 @@
                     setIsDisconnect(false);
                     setIsOn(true);
                 }
-            }else if(!getIsOn()){
-                setAction('Please turn me on!');
             }else{
                 setAction('The bot is sleeping from 10 PM until 7 AM');
             }
