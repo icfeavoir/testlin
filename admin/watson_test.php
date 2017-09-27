@@ -20,7 +20,7 @@
 			<h2>WATSON TEST</h2>
 			<p class="alert alert-info">In this interface, you are a LinkedIn user named <b>Gustaf Hector</b></p>
 			<div class="alert alert-info">
-				<div class="conv-msg">waiting to start conversation...</div>
+				<div class="conv-msg"></div>
 			</div>
 			<hr/><br/>
 			<div class="answer-form">
