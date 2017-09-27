@@ -10,7 +10,7 @@
     $asked_connect_max = 10;
 
     setAction('The bot is connecting to the account.');
-    $li = new Linkedin();
+    $li = new Linkedin(USERNAME, PASSWORD);
 
     $watson = new Watson(WATSON_USERNAME, WATSON_PASSWORD, WATSON_CONVERSATION);
 
