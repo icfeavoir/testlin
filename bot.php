@@ -113,30 +113,28 @@
             if(is_array($convToAnswer) || is_object($convToAnswer)){
                 foreach ($convToAnswer as $key => $value) {
                     $conv = getConversation($value['conv_id']);
-                    if(in_array($value['conv_id'], array('6313350241940750337',))){ // !!!!!!!!!!!!!!!!!!!!!!!!!!
-                        $last = end($conv);
-                        if($last['by_bot']){    // should not append but still...
-                            setRead($last['conv_id']);
-                        }else{
-                            setAction('The bot is trying to answer a message with Watson.');
-                            $context = unserialize(getLastContext($last['conv_id']));
-                            if($context === null){
-                                $userInfos = $li->getUserInformations($last['profile_id']);
-                                do_sleep();
-                                $defaultContext->firstName = $userInfos['firstName'];
-                                $defaultContext->lastName = $userInfos['lastName'];
-                                $defaultContext->job = $userInfos['job'];
-                            }
-                            $watsonAnswer = $watson->chat($last['msg'], $context);
-                            if(isset($watsonAnswer->output->text[0])){    // watson can answer
-                                $li->sendMsg($last['profile_id'], $watsonAnswer->output->text[0], true, serialize($watsonAnswer->context));
-                                do_sleep();
-                            }else{  // we put the context to "anything else" to avoid new bot msg for this user
-                                setContext($last['msg_id'], serialize($watson->chat('anything_else')->context));
-                            }
-                            setWatsonTry($last['msg_id']);
+                    $last = end($conv);
+                    if($last['by_bot']){    // should not append but still...
+                        setRead($last['conv_id']);
+                    }else{
+                        setAction('The bot is trying to answer a message with Watson.');
+                        $context = unserialize(getLastContext($last['conv_id']));
+                        if($context === null){
+                            $userInfos = $li->getUserInformations($last['profile_id']);
+                            do_sleep();
+                            $defaultContext->firstName = $userInfos['firstName'];
+                            $defaultContext->lastName = $userInfos['lastName'];
+                            $defaultContext->job = $userInfos['job'];
                         }
-                    }               
+                        $watsonAnswer = $watson->chat($last['msg'], $context);
+                        if(isset($watsonAnswer->output->text[0])){    // watson can answer
+                            $li->sendMsg($last['profile_id'], $watsonAnswer->output->text[0], true, serialize($watsonAnswer->context));
+                            do_sleep();
+                        }else{  // we put the context to "anything else" to avoid new bot msg for this user
+                            setContext($last['msg_id'], serialize($watson->chat('anything_else')->context));
+                        }
+                        setWatsonTry($last['msg_id']);
+                    }
                 }
             }
 
