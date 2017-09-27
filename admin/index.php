@@ -157,6 +157,7 @@ $(document).ready(function(){
 
 		// bot on off
 		post({'action': 'isOn'}, function(resp){
+			console.log(resp.isOn);
 			$('#on-off-btn').prop('checked', resp.isOn);
 			$('#bot-state').text(resp.isOn?'On':'Off');
 		});
@@ -320,7 +321,7 @@ $(document).ready(function(){
 	});
 
 	getUnreadConv();
-	// every  10 sec, we refresh stats and the first time too
+	// every  sec, we refresh stats and the first time too
 	refreshValues();
 	window.setInterval(refreshValues, 1000);
 });
