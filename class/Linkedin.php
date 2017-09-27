@@ -445,7 +445,7 @@
 
 		public function getBotDetected(){
 			$cookie = file_get_contents(ROOTPATH.'/cookie.txt');
-			if(strpos($cookie, 'li_at') != false && strpos($cookie, 'delete me') == false){
+			if(strpos($cookie, 'delete me') == false){
 			    return false;	// not detected
 			}else{
 			    return true;
