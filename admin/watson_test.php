@@ -44,7 +44,9 @@ $(document).ready(function(){
 		}
 		$.post('watson_context.php', {'action': action, 'msg': msg}).done(function( r ){
 			if(action == 'getResponse'){
-				newMsg('bot', r);
+				if(r != ''){
+					newMsg('bot', r);
+				}
 			}
 		});
 	}
