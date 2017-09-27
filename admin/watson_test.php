@@ -18,20 +18,15 @@
 	<body>
 		<div class="container">
 			<h2>WATSON TEST</h2>
-			<h3>user: <b>Gustaf Hector</b></h3>
-			<br><br>
-			<h4>CONVERSATION</h4>
-			<br>
+			<p class="alert alert-info">In this interface, you are a LinkedIn user named <b>Gustaf Hector</b></p>
 			<div class="alert alert-info">
-				<div class="conv-msg">
-					
-				</div>
+				<div class="conv-msg">waiting to start conversation...</div>
 			</div>
 			<hr/><br/>
 			<div class="answer-form">
-				<input type="text" class="form-control" id="answer-conv-msg" rows="5" /><br/>
+				<input placeholder="What do you want to test?" type="text" class="form-control" id="answer-conv-msg" rows="5" /><br/>
 				<button class="btn btn-primary btn-md btn-block" id="send-msg">Send</button>
-				<br>
+				<br><br>
 				<button class="btn btn-block btn-warning" id="sendTemplate">Send a random template to you !</button>
 				<br><br/>
 				<button class="btn btn-block btn-danger" id="reset">Reset and try again</button>
