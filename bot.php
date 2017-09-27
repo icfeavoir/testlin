@@ -119,7 +119,15 @@
                             setRead($last['conv_id']);
                         }else{
                             setAction('The bot is trying to answer a message with Watson.');
-                            $watsonAnswer = $watson->chat($last['msg'], unserialize(getLastContext($last['conv_id'])));
+                            $context = unserialize(getLastContext($last['conv_id']));
+                            if($context === null){
+                                $userInfos = $li->getUserInformations($last['profile_id']);
+                                do_sleep();
+                                $defaultContext->firstName = $userInfos['firstName'];
+                                $defaultContext->lastName = $userInfos['lastName'];
+                                $defaultContext->job = $userInfos['job'];
+                            }
+                            $watsonAnswer = $watson->chat($last['msg'], $context);
                             if(isset($watsonAnswer->output->text[0])){    // watson can answer
                                 $li->sendMsg($last['profile_id'], $watsonAnswer->output->text[0], true, serialize($watsonAnswer->context));
                                 do_sleep();
