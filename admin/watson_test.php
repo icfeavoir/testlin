@@ -18,6 +18,8 @@
 	<body>
 		<div class="container">
 			<h2>WATSON TEST</h2>
+			<a href="index.php"><button class="btn btn-sm btn-primary"><i class="fa fa-arrow-left"></i> Back</button></a>
+			<br><br>
 			<p class="alert alert-info">In this interface, you are a LinkedIn user named <b>Gustaf Hector</b></p>
 			<div class="alert alert-info">
 				<div class="conv-msg"></div>
