@@ -71,19 +71,21 @@
             //check and save new connections  
     		$newConnections = $li->checkNewConnections();
             setAction('The bot is saving all users who accepted the connection.');
+            do_sleep();
             // accept connection requests
             $new = $li->acceptLastConnectionRequest();
             if($new != null){   // will add if not null -> new connection
                 $newConnections = array_merge($newConnections, $new);
                 setAction('The bot is accepting the connection requests that other users sent.');
             }
+            do_sleep();
 
             if(checkBotDetected()){goto BotDetected;}
 
             //send default msg to new connections
     		foreach ($newConnections as $key => $profile_id) {
                 if(count(directQuery('SELECT * FROM old_msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0){
-                    break;
+                    continue;
                 }
 
                 $userInfos = $li->getUserInformations($profile_id);
