@@ -5,3 +5,5 @@ id
 index.php
 !admin/index.php
 admin/context
+
+nohup\.out
