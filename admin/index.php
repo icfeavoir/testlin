@@ -310,7 +310,7 @@ $(document).ready(function(){
 	post({'action': 'getKeyWords'}, function(resp){
 		$.each(resp.keyWords, function(key, value){
 			var colorClass = value.done==1?'alert-warning':'alert-info';
-			$('.key-words-list ul').append('<li class="'+colorClass+'"><span class="key-word-item">'+value.key_word+'</span><i class="fa fa-times-circle-o" aria-hidden="true" id='+value.ID+'></i></li>');
+			$('.key-words-list ul').append(' <li class="'+colorClass+'"><span class="key-word-item">'+value.key_word+'</span><i class="fa fa-times-circle-o" aria-hidden="true" id='+value.ID+'></i></li>');
 			// add the click listener to the new <i>
 			$('i[id="'+value.ID+'"]').click(function(){
 				var id = $(this).attr('id');
