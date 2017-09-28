@@ -46,7 +46,7 @@
                         $key_words_count++; // new key word
                     }
         	    	foreach ($result as $profile_id) {
-                        $friend = count(directQuery('SELECT ID FROM old_connect_asked WHERE profile_id="'.$profile_id.'"')) == 0 && count(directQuery('SELECT ID FROM old_connect_list WHERE profile_id="'.$profile_id.'"')) == 0;
+                        $friend = count(directQuery('SELECT ID FROM old_connect_asked WHERE profile_id="'.$profile_id.'"')) == 0 || count(directQuery('SELECT ID FROM old_connect_list WHERE profile_id="'.$profile_id.'"')) == 0;
                         if(!$friend){   //not already friend
             	    		$already = $li->connectTo($profile_id);
                             if($already != null){   // if sent, else means that we already asked this user so we can skip it
