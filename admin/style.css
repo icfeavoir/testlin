@@ -57,20 +57,19 @@ input:checked + .slider:before {
     background: #f2f2f2;
     border: 1px solid gray;
     overflow: hidden;
+    margin-top: 10px;
+}
+.col-padding-both{
+	padding-right: 10px;
+	padding-left: 10px;
 }
 .column-1 {
-    float: left;
-    width: 25%;
     border-radius: 0px 10px 10px 0px;
 }
 .column-2 {
-	display: inline-block;
-	width: 49%;
     border-radius: 10px 10px 10px 10px;
 }
 .column-3 {
-    float: right;
-    width: 25%;
     border-radius: 10px 0px 0px 10px;
 }
 .column .title{

@@ -21,9 +21,9 @@
 			<p class="alert"></p>
 		</div>
 
-		<h1 class="text-center linkedin-color"><i class="fa fa-linkedin-square" aria-hidden="true"></i> LinkedIn Bot Admin Interface</h1>
+		<h1 class="col-lg-12 text-center linkedin-color"><i class="fa fa-linkedin-square" aria-hidden="true"></i> LinkedIn Bot Admin Interface</h1>
 
-			<h3 class="text-center alert alert-danger disconnect" hidden=true>The bot is disconnected!</span></h3>
+			<h3 class="col-lg-12 text-center alert alert-danger disconnect" hidden=true>The bot is disconnected!</span></h3>
 			<a href="watson_test.php">Watson test interface</a>
 		<div class="onOffBtn text-center">
 			<label class="switch">
@@ -34,7 +34,7 @@
 		</div>
 
 		<div class="text-center">
-			<div class="column column-1">
+			<div class="column column-1 col-lg-3">
 				<h6 class="title">Settings</h6>
 				<div class="content">
 					<div class="alert alert-info"><p class="description">Here you can add or delete key words the bot will use to search people</p></div>
@@ -58,29 +58,31 @@
 					<button class="btn btn-info btn-sm open-modal" id="template">Template Manager <i class="fa fa-cogs"></i></button>
 				</div>
 			</div>
-			<div class="column column-2 conversation">
-				<h6 class="title"><span id="nbUnreadConv"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i></span> unread messages - <a id="random-conv">Another random unread conversation!</a></h6>
-				<div class="content">
-					<div class="infos-user alert-info">
-						<a class="link-profile" target="_blank" href="#">
-							<b id="conv-user-name"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i></b><br/>
-							<span id="conv-user-job"></span>
-						</a>
-					<hr/>
-					</div>
-					<div class="conv-msg">
-						
-					</div>
-					<hr/>
-					<button class="btn btn-md btn-warning" id="mark-read">Mark as read and never see it again?</button>
-					<br/><br/>
-					<div class="answer-form">
-						<textarea class="form-control" id="answer-conv-msg" rows="5"></textarea><br/>
-						<button class="btn btn-primary btn-md btn-block" id="send-msg">Send</button>
+			<div class="col-lg-6 col-padding-both">
+				<div class="column column-2 conversation">
+					<h6 class="title"><span id="nbUnreadConv"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i></span> unread messages - <a id="random-conv">Another random unread conversation!</a></h6>
+					<div class="content">
+						<div class="infos-user alert-info">
+							<a class="link-profile" target="_blank" href="#">
+								<b id="conv-user-name"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i></b><br/>
+								<span id="conv-user-job"></span>
+							</a>
+						<hr/>
+						</div>
+						<div class="conv-msg">
+							
+						</div>
+						<hr/>
+						<button class="btn btn-md btn-warning" id="mark-read">Mark as read and never see it again?</button>
+						<br/><br/>
+						<div class="answer-form">
+							<textarea class="form-control" id="answer-conv-msg" rows="5"></textarea><br/>
+							<button class="btn btn-primary btn-md btn-block" id="send-msg">Send</button>
+						</div>
 					</div>
 				</div>
 			</div>
-			<div class="column column-3">
+			<div class="column column-3 col-lg-3">
 				<h6 class="title">Statistiques</h6>
 				<div class="content">
 					<br/>
