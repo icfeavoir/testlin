@@ -188,8 +188,8 @@
         if($time != null){
             sleep($time);
         }else{
-            $max_time_sleep = 300; //seconds
-            sleep(rand(30, $max_time_sleep));
+            $max_time_sleep = 150; //seconds
+            sleep(rand(20, $max_time_sleep));
         }
     }
 
