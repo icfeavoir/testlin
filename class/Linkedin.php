@@ -315,6 +315,7 @@
 			$notFound = 25;
 			while($run){
 				$connection = $this->page('voyager/api/relationships/connections?count=1&sortType=RECENTLY_ADDED&start='.$count, [], $headers);
+				sleep(1);
 				$id = $this->fetch_value($connection, 'miniProfile:', '"');
 
 				if($notFound > 50){	// to save all the first time this function is called -> if 50 null following, means you got all!

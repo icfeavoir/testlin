@@ -82,7 +82,7 @@
 
             //send default msg to new connections
     		foreach ($newConnections as $key => $profile_id) {
-                if(count(directQuery('SELECT * FROM old_msg_conversation WHERE profile_id="'.$profile_id.'"') != 0)){
+                if(count(directQuery('SELECT * FROM old_msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0){
                     break;
                 }
 
