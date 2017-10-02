@@ -15,7 +15,7 @@
     $watson = new Watson(WATSON_USERNAME, WATSON_PASSWORD, WATSON_CONVERSATION);
 
     while(true){
-	    if(getIsOn() && !checkBotDetected() && intval(date('G', time())) >= 7 && intval(date('H', time())) < 23){ // good hour :)
+	    if(getIsOn() && !checkBotDetected() && intval(date('G', time())) >= 8 && intval(date('H', time())) < 20){ // good hour :)
             
             // for each iteration, we close curl to save cookie and we re open it to know if the bot is detected.
             $li->close();
@@ -190,8 +190,8 @@
         if($time != null){
             sleep($time);
         }else{
-            $max_time_sleep = 150; //seconds
-            sleep(rand(20, $max_time_sleep));
+            $max_time_sleep = 180; //seconds
+            sleep(rand(45, $max_time_sleep));
         }
     }
 

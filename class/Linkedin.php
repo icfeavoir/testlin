@@ -230,6 +230,9 @@
 		* @param string $context (optional) The watson context (STRING AND NOT OBJECT !)
 		*/
 		public function sendMsg($profile_id, $msg, $watson=0, $context=null){
+			if(count($profile_id) == 0)
+				return false;
+			
 			if(is_array($msg)){	// if send template, to user with the getTemplate($id) function
 				$template = $msg['ID'];
 				$msg = str_replace('<br />', '\n', $msg['msg']);
