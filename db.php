@@ -12,10 +12,10 @@
 	*
 	* @return Bool True if disconnect
 	*/
-	function getIsDisconnect(){
+	function getIsDisconnect($account){
 		global $db;
-		$statement = $db->prepare('SELECT is_disconnect FROM bot_disconnect LIMIT 1');
-		$statement->execute();
+		$statement = $db->prepare('SELECT is_disconnect FROM bot_disconnect WHERE accountID=:account LIMIT 1');
+		$statement->execute(array(':account'=>$account));
 		return $statement->fetch()['is_disconnect'] == true;
 	}
 
@@ -24,10 +24,11 @@
 	*
 	* @param bool $isDisconnect true for the bot disconnected, false for the bot connected
 	*/
-	function setIsDisconnect($isDisconnect){
+	function setIsDisconnect($isDisconnect, $account){
 		global $db;
-		$statement = $db->prepare('UPDATE bot_disconnect SET is_disconnect = :is_disconnect');
+		$statement = $db->prepare('UPDATE bot_disconnect SET is_disconnect = :is_disconnect WHERE accountID=:accountID');
 		$statement->bindValue(':is_disconnect', $isDisconnect, PDO::PARAM_INT);
+		$statement->bindValue(':accountID', $account);
 		$statement->execute();
 	}
 
@@ -36,10 +37,10 @@
 	*
 	* @return String the action
 	*/
-	function getAction(){
+	function getAction($account){
 		global $db;
-		$statement = $db->prepare('SELECT action FROM bot_action LIMIT 1');
-		$statement->execute();
+		$statement = $db->prepare('SELECT action FROM bot_action WHERE accountID=:account LIMIT 1');
+		$statement->execute(array(':account'=>$account));
 		return $statement->fetch()['action'];
 	}
 
@@ -48,10 +49,10 @@
 	*
 	* @param string $action The action
 	*/
-	function setAction($action){
+	function setAction($action, $account){
 		global $db;
-		$statement = $db->prepare('UPDATE bot_action SET action = :action');
-		$statement->execute(array(':action'=>$action));
+		$statement = $db->prepare('UPDATE bot_action SET action = :action WHERE accountID=:account');
+		$statement->execute(array(':action'=>$action, ':account'=>$account));
 	}
 
 	/* ON - OFF */
@@ -86,10 +87,10 @@
 	*
 	* @return Array with all connections request
 	*/
-	function getAllConnectionsSent(){
+	function getAllConnectionsSent($connect){
 		global $db;
-		$statement = $db->prepare('SELECT * FROM connect_asked ORDER BY ID');
-		$statement->execute();
+		$statement = $db->prepare('SELECT * FROM connect_asked WHERE connectID=:connect ORDER BY ID');
+		$statement->execute(array(':connect'=>$connect));
 		return $statement->fetchAll();
 	}
 
@@ -100,10 +101,10 @@
 	*
 	* @return false if connect never send, the query response else
 	*/
-	function isConnectSent($profile_id){
+	function isConnectSent($profile_id, $account){
 		global $db;
-		$statement = $db->prepare('SELECT * FROM connect_asked WHERE profile_id= :profile_id LIMIT 1');
-		$statement->execute(array(':profile_id' => $profile_id));
+		$statement = $db->prepare('SELECT * FROM connect_asked WHERE profile_id= :profile_id AND accountID=:account LIMIT 1');
+		$statement->execute(array(':profile_id' => $profile_id, ':account'=>$account));
 		if($statement->rowCount() == 0)
 			return false;
 		return $statement->fetch();
@@ -115,10 +116,10 @@
 	* @param string $profile_id The id of the user to check
 	*
 	*/
-	function saveConnectSent($profile_id){
+	function saveConnectSent($profile_id, $account){
 		global $db;
-		$statement = $db->prepare('INSERT INTO connect_asked (profile_id) VALUES (:profile_id)');
-		$statement->execute(array(':profile_id' => $profile_id));
+		$statement = $db->prepare('INSERT INTO connect_asked (profile_id, accountID) VALUES (:profile_id, :account)');
+		$statement->execute(array(':profile_id' => $profile_id, ':account'=>$account));
 	}
 
 	/* -------------- CONVERSATIONS --------------------- */
@@ -153,15 +154,15 @@
 	*
 	* @return Array with all msg
 	*/
-	function getMsgSent($profile_id='%%', $conv_id='%%', $msg_id='%%', $template='%%', $watson_msg='%%'){
+	function getMsgSent($account, $profile_id='%%', $conv_id='%%', $msg_id='%%', $template='%%', $watson_msg='%%'){
 		global $db;
 		$profile_id = empty($profile_id)?'%%':$profile_id;
 		$conv_id = empty($conv_id)?'%%':$conv_id;
 		$msg_id = empty($msg_id)?'%%':$msg_id;
 		$template = empty($template)?'%%':$template;
 		$watson_msg = empty($watson_msg)?'%%':$watson_msg;
-		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=1 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template  AND watson_msg LIKE :watson_msg ORDER BY ID');
-		$statement->execute(array(':profile_id'=>$profile_id, ':conv_id'=>$conv_id, ':msg_id'=>$msg_id, ':template'=>$template, ':watson_msg'=>$watson_msg));
+		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=1 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template  AND watson_msg LIKE :watson_msg AND accountID=:account ORDER BY ID');
+		$statement->execute(array(':profile_id'=>$profile_id, ':conv_id'=>$conv_id, ':msg_id'=>$msg_id, ':template'=>$template, ':watson_msg'=>$watson_msg, ':account'=>$account));
 		return $statement->rowCount()==0?null:$statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 
@@ -173,10 +174,10 @@
 	*
 	* @return false if msg never send, the query response else
 	*/
-	function isMsgSentId($conv, $msg_id){
+	function isMsgSentId($conv, $msg_id, $account){
 		global $db;
-		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=1 AND conv_id = :conv AND msg_id = :msg_id');
-		$statement->execute(array(':conv' => $conv, ':msg_id' => $msg_id));
+		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=1 AND conv_id = :conv AND msg_id = :msg_id AND accountID=:account');
+		$statement->execute(array(':conv' => $conv, ':msg_id' => $msg_id, ':account'=>$account));
 		if($statement->rowCount() == 0)
 			return false;
 		return $statement->fetch();
@@ -186,11 +187,11 @@
 	* Save the msg sent from the bot to an user
 	*
 	*/
-	function saveMsgSent($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson_msg=0, $context=null){
+	function saveMsgSent($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson_msg=0, $context=null, $account){
 		global $db;
 		$date = gettype($date)=='string'?$date:date('Y-m-d G:i:s', $date);
-		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson_msg, is_read, watson_context, date) VALUES (1, :profile_id, :conv, :msg_id, :template, :msg, :watson_msg, :read, :context, :date)');
-		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson_msg'=>$watson_msg, ':read'=>true, ':context'=>$context, ':date'=>$date));
+		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson_msg, is_read, watson_context, date, accountID) VALUES (1, :profile_id, :conv, :msg_id, :template, :msg, :watson_msg, :read, :context, :date, :account)');
+		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson_msg'=>$watson_msg, ':read'=>true, ':context'=>$context, ':date'=>$date, ':account'=>$account));
 	}
 
 
@@ -207,7 +208,7 @@
 	*
 	* @return Array with all msg
 	*/
-	function getMsgReceived($profile_id='%%', $conv_id='%%', $msg_id='%%', $template='%%', $watson_msg='%%', $watson_try='%%', $is_read='%%'){
+	function getMsgReceived($account, $profile_id='%%', $conv_id='%%', $msg_id='%%', $template='%%', $watson_msg='%%', $watson_try='%%', $is_read='%%'){
 		global $db;
 		$profile_id = empty($profile_id)?'%%':$profile_id;
 		$conv_id = empty($conv_id)?'%%':$conv_id;
@@ -217,8 +218,8 @@
 		$watson_try = getType($watson_try)!='boolean'?'%%':intval($watson_try);
 		$is_read = getType($is_read)!='boolean'?'%%':intval($is_read);
 
-		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=0 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template AND watson_msg LIKE :watson_msg AND watson_try LIKE :watson_try AND is_read LIKE :is_read ORDER BY date');
-		$statement->execute(array(':profile_id'=>$profile_id, ':conv_id'=>$conv_id, ':msg_id'=>$msg_id, ':template'=>$template, ':watson_msg'=>$watson_msg, ':watson_try'=>$watson_try, ':is_read'=>$is_read));
+		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=0 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template AND watson_msg LIKE :watson_msg AND watson_try LIKE :watson_try AND is_read LIKE :is_read AND accountID=:account ORDER BY date');
+		$statement->execute(array(':profile_id'=>$profile_id, ':conv_id'=>$conv_id, ':msg_id'=>$msg_id, ':template'=>$template, ':watson_msg'=>$watson_msg, ':watson_try'=>$watson_try, ':is_read'=>$is_read, ':account'=>$account));
 		return $statement->rowCount()==0?null:$statement->fetchAll(PDO::FETCH_ASSOC);
 	}
 	
@@ -232,11 +233,11 @@
 	* @param int $template (optional) The ID of the msg template used
 	*
 	*/
-	function saveMsgReceived($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson_msg=false){
+	function saveMsgReceived($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson_msg=false, $account){
 		global $db;
 		$date = gettype($date)=='string'?$date:date('Y-m-d G:i:s', $date);
-		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson_msg, date) VALUES (0, :profile_id, :conv, :msg_id, :template, :msg, :watson_msg, :date)');
-		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson_msg'=>$watson_msg, ':date'=>$date));
+		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson_msg, date, accountID) VALUES (0, :profile_id, :conv, :msg_id, :template, :msg, :watson_msg, :date, :account)');
+		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson_msg'=>$watson_msg, ':date'=>$date, ':account'=>$account));
 	}
 
 	/**
@@ -332,10 +333,10 @@
 	*
 	* @return Array of all connections
 	*/
-	function getAllConnections(){
+	function getAllConnections($account){
 		global $db;
-		$statement = $db->prepare('SELECT * FROM connect_list ORDER BY ID');
-		$statement->execute();
+		$statement = $db->prepare('SELECT * FROM connect_list WHERE accountID=:account ORDER BY ID');
+		$statement->execute(array(':account'=>$account));
 		return $statement->fetchAll();
 	}
 
@@ -346,10 +347,10 @@
 	*
 	* @return false if msg never send, the query response else
 	*/
-	function isConnectedTo($profile_id){
+	function isConnectedTo($profile_id, $account){
 		global $db;
-		$statement = $db->prepare('SELECT * FROM connect_list WHERE profile_id= :profile_id');
-		$statement->execute(array(':profile_id' => $profile_id));
+		$statement = $db->prepare('SELECT * FROM connect_list WHERE profile_id= :profile_id AND accountID=:account');
+		$statement->execute(array(':profile_id' => $profile_id, ':account'=>$account));
 		if($statement->rowCount() == 0)
 			return false;
 		return $statement->fetch();
@@ -361,10 +362,10 @@
 	* @param string $profile_id The id of the user to check
 	*
 	*/
-	function saveConnectedTo($profile_id){
+	function saveConnectedTo($profile_id, $account){
 		global $db;
-		$statement = $db->prepare('INSERT INTO connect_list (profile_id) VALUES (:profile_id)');
-		$statement->execute(array(':profile_id' => $profile_id));
+		$statement = $db->prepare('INSERT INTO connect_list (profile_id, accountID) VALUES (:profile_id, :account)');
+		$statement->execute(array(':profile_id' => $profile_id, ':account'=>$account));
 	}
 
 
@@ -520,10 +521,10 @@
 	*
 	* @return bool Item deleted or not
 	*/
-	function delete($table, $id){
+	function delete($table, $id, $account){
 		global $db;
-		$statement = $db->prepare('DELETE FROM '.$table.' WHERE ID=:id');
-		$statement->execute(array(':id'=>$id));
+		$statement = $db->prepare('DELETE FROM '.$table.' WHERE ID=:id AND accountID=:account');
+		$statement->execute(array(':id'=>$id, ':account'=>$account));
 
 		if($table == 'msg_template'){
 			// set all template values to 0

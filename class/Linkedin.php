@@ -7,18 +7,29 @@
 		private $_username;
 		private $_password;
 		private $_myProfileId;
+		private $_accountID;
 
 		public function __construct($user = null, $pass = null){
 			$this->_ch = curl_init();
 			if($user != null && $pass != null){		// if new connection
 				$this->_username = $user;
 				$this->_password = $pass;
+				$this->_accountID=0;
 
 				$this->login();
 				$this->_myProfileId = $this->fetch_value($this->page('in/'), 'miniProfile:', '&');
-				file_put_contents('id', $this->_myProfileId);
+				file_put_contents('id_'.$this->_accountID, $this->_myProfileId);
+			}else if($user != null && $pass == null){	// connection from an account in DB
+				$account = getAccount($user);
+				$this->_username = $account['email'];
+				$this->_password = $account['password'];
+				$this->_accountID = $account['ID'];
+
+				$this->login();
+				$this->_myProfileId = $this->fetch_value($this->page('in/'), 'miniProfile:', '&');
+				file_put_contents('id_'.$this->_accountID, $this->_myProfileId);
 			}else{
-				$this->_myProfileId = file_get_contents(ROOTPATH.'/id');
+				$this->_myProfileId = file_get_contents(ROOTPATH.'/id_'.$this->_accountID);
 			}
 		}
 
@@ -28,10 +39,10 @@
 
 		private function login(){
 			//DELETE PREVIOUS COOKIE FILE AND A NEW ONE
-		    if(!(is_file(ROOTPATH.'/cookie.txt'))){
-		        touch(ROOTPATH.'/cookie.txt');
+		    if(!(is_file(ROOTPATH.'/cookie_'.$this->_accountID.'.txt'))){
+		        touch(ROOTPATH.'/cookie_'.$this->_accountID.'.txt');
 		    }else{ 	// empty the file
-		    	$f = @fopen(ROOTPATH."/cookie.txt", "r+");
+		    	$f = @fopen(ROOTPATH."/cookie_'.$this->_accountID.'.txt", "r+");
 		    	if ($f !== false) {
 		    	    ftruncate($f, 0);
 		    	    fclose($f);
@@ -95,8 +106,8 @@
 		    curl_setopt($this->_ch, CURLOPT_FOLLOWLOCATION, true);
 		    curl_setopt($this->_ch, CURLOPT_SSL_VERIFYPEER, false);
 		    curl_setopt($this->_ch, CURLOPT_SSL_VERIFYHOST, false);
-		    curl_setopt($this->_ch, CURLOPT_COOKIEJAR, realpath(ROOTPATH.'/cookie.txt'));
-		    curl_setopt($this->_ch, CURLOPT_COOKIEFILE, realpath(ROOTPATH.'/cookie.txt'));
+		    curl_setopt($this->_ch, CURLOPT_COOKIEJAR, realpath(ROOTPATH.'/cookie_'.$this->_accountID.'.txt'));
+		    curl_setopt($this->_ch, CURLOPT_COOKIEFILE, realpath(ROOTPATH.'/cookie_'.$this->_accountID.'.txt'));
 		    curl_setopt($this->_ch, CURLOPT_POST, false);
 		    curl_setopt($this->_ch, CURLOPT_HEADER, false);
 		    if(count($postdata) > 0){
@@ -152,7 +163,7 @@
 
 			//saving in DB
 			if($check_in_db)
-				saveConnectSent($profile_id);
+				saveConnectSent($profile_id, $this->_accountID);
 
 			return $this->page('voyager/api/growth/normInvitations', $payload, $headers, false, false);
 		}
@@ -176,7 +187,7 @@
 			);
 			// accept connect
 			$this->page('voyager/api/relationships/invitations/'.$invitationId.'?action=accept', json_encode($payload), $headers, false, false);
-			saveConnectedTo($profile_id);
+			saveConnectedTo($profile_id, $this->_accountID);
 			return $profile_id;
 		}
 
@@ -259,7 +270,7 @@
 			$this->markConversationAsRead($conv_id);
 
 			//saving in DB
-			saveMsgSent($profile_id, $msg, $conv_id, $msg_id, time(), $template, $watson, $context);
+			saveMsgSent($profile_id, $msg, $conv_id, $msg_id, time(), $template, $watson, $context, $this->_accountID);
 
 			return $sending;
 		}
@@ -275,7 +286,7 @@
 				$prev = getLastMsg($msg['conv_id']);
 				$template = $prev['template_msg']??0;
 				$watson = $prev['watson']??0;
-				saveMsgReceived($msg['profile_id'], $msg['msg'], $msg['conv_id'], $msg['msg_id'], $msg['date'], $template, $watson);
+				saveMsgReceived($msg['profile_id'], $msg['msg'], $msg['conv_id'], $msg['msg_id'], $msg['date'], $template, $watson, $this->_accountID);
 			}
 		}
 
@@ -290,10 +301,10 @@
 				return;
 			if($msg['by'] == 'bot'){
 				// already saved
-				if(getMsgSent(null, null, $msg['msg_id']) != null)
+				if(getMsgSent($this->_accountID, null, null, $msg['msg_id']) != null)
 					return;
-				// not template or Watson if we just discover this msg sent by the bot
-				saveMsgSent($msg['profile_id'], $msg['msg'], $msg['conv_id'], $msg['msg_id'], $msg['date']);
+				// not template or Watson if we just discover this msg sent by the bot (old msg)
+				saveMsgSent($msg['profile_id'], $msg['msg'], $msg['conv_id'], $msg['msg_id'], $msg['date'], 0, 0, null, $this->_accountID);
 			}else{
 				$this->receiveMsg($msg);
 			}
@@ -330,10 +341,10 @@
 					$notFound = 0;	// if we find one, go back to 0 for notFound.
 				}
 
-				if(isConnectedTo($id)===false){		// connected with but not saved yet in DB --> new connections
-					saveConnectedTo($id);
+				if(isConnectedTo($id, $this->_accountID)===false){		// connected with but not saved yet in DB --> new connections
+					saveConnectedTo($id, $this->_accountID);
 					array_push($newConnections, $id);
-				}else if(isConnectedTo($id)!==false && $id != null){	// already saved (and not a bug) = last time this function ran, it stopped at this id
+				}else if(isConnectedTo($id, $this->_accountID)!==false && $id != null){	// already saved (and not a bug) = last time this function ran, it stopped at this id
 					$run = false;
 				}
 				$count++;
@@ -447,7 +458,7 @@
 		}
 
 		public function getBotDetected(){
-			$cookie = file_get_contents(ROOTPATH.'/cookie.txt');
+			$cookie = file_get_contents(ROOTPATH.'/cookie_'.$this->_accountID.'.txt');
 			if(strpos($cookie, 'li_at') != false && strpos($cookie, 'delete me') == false){ 
 			    return false;	// not detected
 			}else{
@@ -461,7 +472,7 @@
 		}
 
 		private function getHeaders(){	// return the array of headers needed for actions (connect, sending msg, etc);
-			$cookies = file_get_contents(ROOTPATH.'/cookie.txt');	// all cookies
+			$cookies = file_get_contents(ROOTPATH.'/cookie_'.$this->_accountID.'.txt');	// all cookies
 			$cookie = $this->fetch_value($cookies, "JSESSIONID\t\"ajax:", "\"\n");	// the one we want
 
 			return array(

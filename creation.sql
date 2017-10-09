@@ -14,12 +14,14 @@ CREATE TABLE IF NOT EXISTS `bot_on_off` (
 
 CREATE TABLE IF NOT EXISTS `bot_disconnect` (
 	`is_disconnect` boolean NOT NULL,
-	`last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+	`last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	`accountID` int NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS `bot_action` (
 	`action` text NOT NULL,
-	`last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+	`last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	`accountID` int NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS `connect_asked` (
@@ -75,6 +77,10 @@ INSERT INTO bot_action (action) SELECT 'Nothing' WHERE NOT EXISTS (SELECT * FROM
 
 -- FOREIGN KEYS
 
+ALTER TABLE `bot_disconnect`
+  ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;
+ALTER TABLE `bot_action`
+  ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;
 ALTER TABLE `connect_asked`
   ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;
 ALTER TABLE `connect_list`

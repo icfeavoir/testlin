@@ -5,30 +5,24 @@
 
 	// [success=>bool, response=>array]
 	$json = array('success'=>true, 'msg'=>'Nothing appened', 'showMsg'=>true);
-	$account = $_GET['account'];
+	$account = $_GET['account'] ?? 0;
 
 	if(!isset($_POST['action'])){
 		$json['success'] = false;
 		exit(json_encode($json));
 	}
 
-	// GENERAL
-	else if($_POST['action'] == 'delete'){
-		$check = delete($_POST['table'], $_POST['id']);
-		$json['msg'] = $check?'Item deleted':'An error occured';
-		$json['success'] = $check;
-	}
 
 	// INDEX PAGE
 
 	// DISCONNECT
 	else if($_POST['action'] == 'botDisconnect'){
 		$json['showMsg'] = false;
-		$json['disconnect'] = getIsDisconnect();
+		$json['disconnect'] = getIsDisconnect($account);
 	}
 	else if($_POST['action'] == 'changeBotDisconnect'){
 		$json['showMsg'] = false;
-		setIsDisconnect($_POST['disconnect']);
+		setIsDisconnect($_POST['disconnect'], $account);
 	}
 	// ON OFF
 	else if($_POST['action'] == 'isOn'){
@@ -62,15 +56,15 @@
 		$json['showMsg'] = false;
 		$func = $_POST['function'];
 		if($func == 'getAction'){
-			$json['value'] = $func();
+			$json['value'] = $func($account);
 		}else{
-			$json['value'] = count($func());
+			$json['value'] = count($func($account));
 		}
 	}
 	else if($_POST['action'] == 'unreadConv'){
 		$json['showMsg'] = false;
 		// all conversations not read and where watson try but couldn't answer
-		$json['unreadConv'] = getMsgReceived(null, null, null, null, null, null, false);
+		$json['unreadConv'] = getMsgReceived($account, null, null, null, null, null, null, false);
 	}
 	// RANDOM CONVERSATION
 	else if($_POST['action'] == 'getMsgConv'){
@@ -80,7 +74,7 @@
 	//USER INFOS
 	else if($_POST['action'] == 'getUserInformations'){
 		$json['showMsg'] = false;
-		$json['data'] = Linkedin::noInst()->getUserInformations($_POST['profile_id']);
+		$json['data'] = (new Linkedin($account))->getUserInformations($_POST['profile_id']);
 	}
 	//MARK AS READ
 	else if($_POST['action'] == 'markRead'){
@@ -91,7 +85,7 @@
 	}
 	// SEND MESSAGE
 	else if($_POST['action'] == 'sendMsg'){
-		$msg = Linkedin::noInst()->sendMsg($_POST['profile_id'], $_POST['msg']);
+		$msg = (new Linkedin($account))->sendMsg($_POST['profile_id'], $_POST['msg']);
 		$json['msg'] = 'Your msg has been sent!';
 	}
 
@@ -120,7 +114,7 @@
 	else if($_POST['action'] == 'getNumberSent'){
 		$json['showMsg'] = false;
 		$number = count(getMsgSent(null, null, null, $_POST['template']));
-		$total = count(directQuery('SELECT ID FROM msg_conversation WHERE by_bot=true AND template_msg!=0'));
+		$total = count(directQuery('SELECT ID FROM msg_conversation WHERE by_bot=true AND template_msg!=0 AND accountID='.$account));
 		$percent = $total!=0?round($number*100/$total):0;
 		$json['value'] = $number.' ('.$percent.'% of first message with this template)';
 	}
