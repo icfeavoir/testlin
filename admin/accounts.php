@@ -31,12 +31,13 @@
 
 <script>
 $(document).ready(function(){
+	var selectedAccount = getUrlParameter('account');
 	$('#newAccount').click(function(){
 		if($('#email').val() != '' && $('#password').val() != ''){
 			var newId = -1;
 			var email = $('#email').val();
 			var password = $('#password').val();
-			post({'action': 'saveNewAccount', 'email': email, 'password': password}, function(resp){
+			post({'action': 'saveNewAccount', 'email': email, 'password': password}, selectedAccount, function(resp){
 				newId = resp.newId;
 				$('.account-manager').append('<tr id="'+newId+'"><td>'+newId+'</td><td>'+email+'</td><td>'+password+'</td><td><i class="fa fa-trash delete"></i></td></tr>');
 				// delete
@@ -57,7 +58,7 @@ $(document).ready(function(){
 					    callback: function (result) {
 					        if(result){
 					        	clicked.parents('tr').remove();
-					        	post({'action':'delete', 'table':'accounts', 'id':newId});
+					        	post({'action':'delete', 'table':'accounts', 'id':newId}, selectedAccount);
 					        }
 					    }
 					});
@@ -67,8 +68,8 @@ $(document).ready(function(){
 			$('#password').val('');
 		}
 	});
-	// all templates
-	post({'action':'getAllAccounts'}, function(resp){
+	// all accounts
+	post({'action':'getAllAccounts'}, selectedAccount, function(resp){
 		$.each(resp.value, function(key, value){
 			$('.account-manager').append('<tr id="'+value.ID+'"><td>'+value.ID+'</td><td>'+value.email+'</td><td>'+value.password+'</td><td><i class="fa fa-trash delete"></i></td></tr>');
 			// delete
@@ -89,7 +90,7 @@ $(document).ready(function(){
 				    callback: function (result) {
 				        if(result){
 				        	clicked.parents('tr').remove();
-				        	post({'action':'delete', 'table':'accounts', 'id':value.ID});
+				        	post({'action':'delete', 'table':'accounts', 'id':value.ID}, selectedAccount);
 				        }
 				    }
 				});

@@ -25,12 +25,14 @@ CREATE TABLE IF NOT EXISTS `bot_action` (
 CREATE TABLE IF NOT EXISTS `connect_asked` (
 	`ID` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	`profile_id` varchar(255) NOT NULL,
-	`date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+	`date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`accountID` int NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS `connect_list` (
 	`ID` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
-	`profile_id` varchar(255) NOT NULL
+	`profile_id` varchar(255) NOT NULL,
+	`accountID` int NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS `msg_conversation` (
@@ -45,20 +47,23 @@ CREATE TABLE IF NOT EXISTS `msg_conversation` (
 	`watson_try` boolean NOT NULL DEFAULT false,
 	`watson_context` text DEFAULT NULL,
 	`is_read` boolean NOT NULL DEFAULT false,
-	`date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+	`date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`accountID` int NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS `key_word_list` (
 	`ID` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	`key_word` varchar(255) NOT NULL,
-	`done` boolean NOT NULL DEFAULT false
+	`done` boolean NOT NULL DEFAULT false,
+	`accountID` int NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS `msg_template` (
 	`ID` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	`msg` text NOT NULL,
 	`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	`active` boolean NOT NULL DEFAULT true
+	`active` boolean NOT NULL DEFAULT true,
+	`accountID` int NOT NULL
 );
 
 
@@ -66,4 +71,17 @@ CREATE TABLE IF NOT EXISTS `msg_template` (
 INSERT INTO bot_on_off (isOn) SELECT 0 WHERE NOT EXISTS (SELECT * FROM bot_on_off);
 INSERT INTO bot_disconnect (is_disconnect) SELECT 0 WHERE NOT EXISTS (SELECT * FROM bot_disconnect);
 INSERT INTO msg_template (msg) SELECT 'YouPic' WHERE NOT EXISTS (SELECT * FROM msg_template);
-INSERT INTO bot_action (action) SELECT 'Nothing' WHERE NOT EXISTS (SELECT * FROM bot_action); 
+INSERT INTO bot_action (action) SELECT 'Nothing' WHERE NOT EXISTS (SELECT * FROM bot_action);
+
+-- FOREIGN KEYS
+
+ALTER TABLE `connect_asked`
+  ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;
+ALTER TABLE `connect_list`
+  ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;
+ALTER TABLE `msg_conversation`
+  ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;
+ALTER TABLE `key_word_list`
+  ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;
+ALTER TABLE `msg_template`
+  ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;

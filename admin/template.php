@@ -27,13 +27,14 @@
 
 <script>
 $(document).ready(function(){
+	var selectedAccount = getUrlParameter('account');
 	// all templates
-	post({'action':'getAllTemplates'}, function(resp){
+	post({'action':'getAllTemplates'}, selectedAccount, function(resp){
 		$.each(resp.templates, function(key, value){
 			$('.template-manager').append('<tr id="'+value.ID+'"><td><div class="checkbox"><label><input type="checkbox" class="active" value="'+value.ID+'" '+(value.active==1?'checked':'')+'></label></div></td><td>'+value.ID+'</td><td>'+value.msg+'</td><td>'+value.created+'</td><td><i class="fa fa-plus plus"></i></td><td><i class="fa fa-trash delete"></i></td></tr>');
 			// show more
 			$('.template-manager tr[id="'+value.ID+'"] i.plus').click(function(){
-				openModal('template_unique', {'template':value.ID});
+				openModal('template_unique', 0, {'template':value.ID});
 			});
 			// delete
 			$('.template-manager tr[id="'+value.ID+'"] i.delete').click(function(){

@@ -51,7 +51,7 @@ $(document).ready(function(){
 	$('.to-load').html('<i class="fa fa-circle-o-notch fa-spin""></i>');
 	$('.to-load').each(function(){
 		var tag = $(this);
-		post({'action':$(this).attr('id'), 'template':template}, function(resp){
+		post({'action':$(this).attr('id'), 'template':template}, 0, function(resp){
 			tag.html(resp.value);
 		});
 	});

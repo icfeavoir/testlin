@@ -5,7 +5,6 @@
 	}catch(Exception $e){
 		exit('Error: '.$e);
 	}
-
 	/* DISCONNECT */
 
 	/**
@@ -45,7 +44,7 @@
 	}
 
 	/**
-	* Change the actino of the bot
+	* Change the action of the bot
 	*
 	* @param string $action The action
 	*/
@@ -377,14 +376,14 @@
 	*
 	* @return array of key_words
 	*/
-	function getKeyWords($all=false){
+	function getKeyWords($all=false, $account){
 		global $db;
 		if($all){
-			$statement = $db->prepare('SELECT * FROM key_word_list');
-			$statement->execute();
+			$statement = $db->prepare('SELECT * FROM key_word_list WHERE accountID=:account');
+			$statement->execute(array(':account'=>$account));
 		}else{
-			$statement = $db->prepare('SELECT * FROM key_word_list WHERE done=:done');
-			$statement->execute(array(':done'=>0));
+			$statement = $db->prepare('SELECT * FROM key_word_list WHERE done=:done AND accountID=:account');
+			$statement->execute(array(':done'=>0, ':account'=>$account));
 		}
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
 	}
@@ -395,10 +394,10 @@
 	* @param string $key_word The key word to save
 	*
 	*/
-	function saveKeyWord($key_word){
+	function saveKeyWord($key_word, $account){
 		global $db;
-		$statement = $db->prepare('INSERT INTO key_word_list (key_word) VALUES (:key_word)');
-		$statement->execute(array(':key_word' => $key_word));
+		$statement = $db->prepare('INSERT INTO key_word_list (key_word, accountID) VALUES (:key_word, :account)');
+		$statement->execute(array(':key_word' => $key_word, ':account'=>$account));
 	}
 
 	/**
@@ -435,10 +434,10 @@
 	* @param string $msg the msg
 	*
 	*/
-	function saveTemplate($msg){
+	function saveTemplate($msg, $account){
 		global $db;
-		$statement = $db->prepare('INSERT INTO msg_template (msg) VALUES = (:msg)');
-		$statement->execute(array(':msg' =>$msg));
+		$statement = $db->prepare('INSERT INTO msg_template (msg, accountID) VALUES (:msg, :account)');
+		$statement->execute(array(':msg' =>$msg, ':account'=>$account));
 	}
 
 	/**
@@ -448,14 +447,14 @@
 	*
 	* @return array All templates
 	*/
-	function getAllTemplates($active=null){
+	function getAllTemplates($active=null, $account){
 		global $db;
 		if($active != null){
-			$statement = $db->prepare('SELECT ID, msg, DATE_FORMAT(created, "%Y-%m-%e") AS created, active FROM msg_template WHERE active=:active ORDER BY ID DESC');
-			$statement->execute(array(':active'=>$active));
+			$statement = $db->prepare('SELECT ID, msg, DATE_FORMAT(created, "%Y-%m-%e") AS created, active FROM msg_template WHERE active=:active AND accountID=:account ORDER BY ID DESC');
+			$statement->execute(array(':active'=>$active, ':account'=>$account));
 		}else{
-			$statement = $db->prepare('SELECT ID, msg, DATE_FORMAT(created, "%Y-%m-%e") AS created, active FROM msg_template ORDER BY ID DESC');
-			$statement->execute();
+			$statement = $db->prepare('SELECT ID, msg, DATE_FORMAT(created, "%Y-%m-%e") AS created, active FROM msg_template WHERE accountID=:account ORDER BY ID DESC');
+			$statement->execute(array(':account'=>$account));
 		}
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
 	}

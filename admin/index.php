@@ -35,6 +35,7 @@
 
 		<container class="accounts">
 			<button class="btn btn-md btn-primary open-modal" id="accounts">Add an account</button>
+			Selected Account : <span class="listAccounts"></span>
 		</container>
 
 		<div class="text-center">
@@ -124,21 +125,6 @@
 $(document).ready(function(){
 	var disconnect = false;
 
-	function getUrlParameter(sParam) {
-	    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-	        sURLVariables = sPageURL.split('&'),
-	        sParameterName,
-	        i;
-
-	    for (i = 0; i < sURLVariables.length; i++) {
-	        sParameterName = sURLVariables[i].split('=');
-
-	        if (sParameterName[0] === sParam) {
-	            return sParameterName[1] === undefined ? true : sParameterName[1];
-	        }
-	    }
-	};
-
 	var selectedAccount = getUrlParameter('account');
 	if(selectedAccount === undefined){
 		// SYNC call to get default accounts
@@ -152,6 +138,7 @@ $(document).ready(function(){
 			dataType: "json",
 			async:false
 		});
+		document.location.href="index.php?account="+selectedAccount;
 	}
 
 	function botDisconnect(isDisconnect){
@@ -169,12 +156,12 @@ $(document).ready(function(){
 
 	function saveKeyWord(){
 		if($('#key-word').val() != ''){
-			post({'action': 'saveKeyWord', 'val': $('#key-word').val()}, function(resp){
+			post({'action': 'saveKeyWord', 'val': $('#key-word').val()}, selectedAccount, function(resp){
 				$(".key-words-list ul").append('<li class="alert-info"><a class="key-word-item" id="'+resp.id+'">'+$('#key-word').val()+'</a><i class="fa fa-times-circle-o" aria-hidden="true" id='+resp.id+'></i></li>');
 				// add the click listener to the new <i>
 				$('i[id="'+resp.id+'"]').click(function(){
 					var id = $(this).attr('id');
-					post({'action': 'delKeyWord', 'id': id}, function(resp){
+					post({'action': 'delKeyWord', 'id': id}, selectedAccount, function(resp){
 						$('i[id="'+id+'"]').parent().remove();
 					});
 				})
@@ -187,19 +174,19 @@ $(document).ready(function(){
 
 	function refreshValues(){
 		// check disconnect
-		post({'action': 'botDisconnect'}, function(resp){
+		post({'action': 'botDisconnect'}, selectedAccount, function(resp){
 			botDisconnect(resp.disconnect);
 		});
 
 		// bot on off
-		post({'action': 'isOn'}, function(resp){
+		post({'action': 'isOn'}, selectedAccount, function(resp){
 			$('#on-off-btn').prop('checked', resp.isOn);
 			$('#bot-state').text(resp.isOn?'On':'Off');
 		});
 		
 		$('.stats-value').each(function(){
 			var value = $(this).attr('id');
-			post({'action': 'stats', 'function': value}, function(resp){
+			post({'action': 'stats', 'function': value}, selectedAccount, function(resp){
 				var previousVal = $('#'+value).html();
 				if(previousVal == '???'){
 					$('#'+value).html(resp.value);
@@ -217,7 +204,7 @@ $(document).ready(function(){
 		post({'action': 'getMsgConv', 'conv': conv_id}, function(resp){
 			var msgs = resp.msgs;
 			// get user informations (name & jobs)
-			post({'action': 'getUserInformations', 'profile_id': msgs[0].profile_id}, function(resp){
+			post({'action': 'getUserInformations', 'profile_id': msgs[0].profile_id}, selectedAccount, function(resp){
 				var userName = resp.data.firstName+' '+resp.data.lastName;
 				$('#conv-user-name').text(userName);
 				$('#conv-user-job').text(resp.data.job);
@@ -227,7 +214,7 @@ $(document).ready(function(){
 				$('.conversation .conv-msg').html('');
 				if(msgs[msgs.length-1].msg == '' && (msgs.length>1 && msgs[msgs.length-2] == '' && msgs[msgs.length-2].by != 'bot')){	// not a msg (user just accepted you on LinkedIn, but not a msg)
 					getUnreadConv();
-					post({'action': 'markRead', 'conv': conv_id});
+					post({'action': 'markRead', 'conv': conv_id},  selectedAccount);
 				}else{
 					$.each(msgs, function(index, val){
 						if(val.msg != '' && val.msg != null){
@@ -252,7 +239,7 @@ $(document).ready(function(){
 	function getUnreadConv(){
 		$('#nbUnreadConv, .conversation .conv-msg, #conv-user-name').html('<i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
 		$('#conv-user-job').html('');
-		post({'action': 'unreadConv'}, function(resp){
+		post({'action': 'unreadConv'}, selectedAccount, function(resp){
 			var unreadConv = resp.unreadConv;
 			var nbUnreadConv = resp.unreadConv == null?0:resp.unreadConv.length;
 			$('#nbUnreadConv').text(nbUnreadConv);
@@ -299,7 +286,7 @@ $(document).ready(function(){
 	});
 	$('#send-msg').click(function(){
 		if($('#answer-conv-msg' != '')){
-			post({'action': 'sendMsg', 'profile_id': $(this).attr('profile-id'), 'msg': $('#answer-conv-msg').val()});
+			post({'action': 'sendMsg', 'profile_id': $(this).attr('profile-id'), 'msg': $('#answer-conv-msg').val()},  selectedAccount);
 			$('.conversation .conv-msg').append(
 				'<div class="convMsg bot"><p class="date">bot - just now</p><p class="text">'+$('#answer-conv-msg').val()+'</p></div>'
 			);
@@ -311,7 +298,7 @@ $(document).ready(function(){
 	$('#mark-read').click(function(){
 		$('#nbUnreadConv, .conversation .conv-msg, #conv-user-name').html('<i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
 		$('#conv-user-job').html('');
-		post({'action': 'markRead', 'show': true, 'conv': $(this).attr('conv-id')}, function(r){
+		post({'action': 'markRead', 'show': true, 'conv': $(this).attr('conv-id')}, selectedAccount, function(r){
 			getUnreadConv();
 		});
 	});
@@ -331,28 +318,35 @@ $(document).ready(function(){
 		if($('#default-msg').val() != ''){
 			// line break to br
 			var val = $('#default-msg').val().replace(/(?:\r\n|\r|\n)/g, '<br />');
-			post({'action': 'saveTemplate', 'msg': val});
+			post({'action': 'saveTemplate', 'msg': val},  selectedAccount);
 			$('#default-msg').val('');
 		}
 	});
 
 	$('.open-modal').click(function(){
-		openModal($(this).attr("id"), {}, true);
+		openModal($(this).attr("id"), selectedAccount, {}, true);
 	});
 
 	// key words
-	post({'action': 'getKeyWords'}, function(resp){
+	post({'action': 'getKeyWords'}, selectedAccount, function(resp){
 		$.each(resp.keyWords, function(key, value){
 			var colorClass = value.done==1?'alert-warning':'alert-info';
 			$('.key-words-list ul').append(' <li class="'+colorClass+'"><span class="key-word-item">'+value.key_word+'</span><i class="fa fa-times-circle-o" aria-hidden="true" id='+value.ID+'></i></li>');
 			// add the click listener to the new <i>
 			$('i[id="'+value.ID+'"]').click(function(){
 				var id = $(this).attr('id');
-				post({'action': 'delKeyWord', 'id': id}, function(resp){
+				post({'action': 'delKeyWord', 'id': id}, selectedAccount, function(resp){
 					$('i[id="'+id+'"]').parent().remove();
 				});
 			})
 		});
+	});
+
+	post({'action': 'getAllAccounts'}, selectedAccount, function(resp){
+		$.each(resp.value, function(key, value){
+			$('.listAccounts').append('<a href="index.php?account='+value.ID+'" id="account-link-'+value.ID+'">'+value.email+'</a> | ');
+		});
+		$('#account-link-'+selectedAccount).css({backgroundColor: '#5bc0de', color: 'white'});
 	});
 
 	getUnreadConv();

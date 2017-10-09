@@ -5,6 +5,7 @@
 
 	// [success=>bool, response=>array]
 	$json = array('success'=>true, 'msg'=>'Nothing appened', 'showMsg'=>true);
+	$account = $_GET['account'];
 
 	if(!isset($_POST['action'])){
 		$json['success'] = false;
@@ -45,10 +46,10 @@
 	// KEY WORDS
 	else if($_POST['action'] == 'getKeyWords'){
 		$json['showMsg'] = false;
-		$json['keyWords'] = getKeyWords(true);
+		$json['keyWords'] = getKeyWords(true, $account);
 	}
 	else if($_POST['action'] == 'saveKeyWord'){
-		saveKeyWord($_POST['val']);
+		saveKeyWord($_POST['val'], $account);
 		$json['msg'] = 'New key word saved';
 		$json['id'] = $db->lastInsertId();
 	}
@@ -98,11 +99,11 @@
 
 	else if($_POST['action'] == 'saveTemplate'){
 		$json['msg'] = 'Template saved!';
-		saveTemplate($_POST['msg']);
+		saveTemplate($_POST['msg'], $account);
 	}
 	else if($_POST['action'] == 'getAllTemplates'){
 		$json['showMsg'] = false;
-		$json['templates'] = getAllTemplates();
+		$json['templates'] = getAllTemplates(null, $account);
 	}
 	else if($_POST['action'] == 'changeTemplateState'){
 		$state = $_POST['state'] == 'true';
