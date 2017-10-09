@@ -241,8 +241,7 @@
 			}
 
 			// we have to delete every slashes (/)
-			while($profile_id[0] === '/')
-				$profile_id = substr($profile_id, 1);
+			$profile_id = trim($profile_id, '/');
 			$profile_id = rtrim($profile_id, '/');
 
 			$payload = '{"conversationCreate":{"eventCreate":{"value":{"com.linkedin.voyager.messaging.create.MessageCreate":{"body":"'.$msg.'","attachments":[]}}},"recipients":["'.$profile_id.'"],"subtype":"MEMBER_TO_MEMBER","name":""}}';
