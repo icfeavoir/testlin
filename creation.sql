@@ -1,6 +1,12 @@
 CREATE DATABASE IF NOT EXISTS linkedinBot;
 use linkedinBot;
 
+CREATE TABLE IF NOT EXISTS `accounts` (
+	`ID` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	`email` text NOT NULL,
+	`password` text NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS `bot_on_off` (
 	`isOn` boolean NOT NULL,
 	`last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP

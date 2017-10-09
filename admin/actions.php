@@ -131,4 +131,15 @@
 		$json['value'] = $number.' ('.$percent.'% of messages sent with this template had a response)';
 	}
 
+	// ----------------- ACCOUNTS MANAGERS ------------------------
+
+	else if($_POST['action'] == 'getAllAccounts'){
+		$json['showMsg'] = false;
+		$json['value'] = getAllAccounts();
+	}
+	else if($_POST['action'] == 'saveNewAccount'){
+		$json['newId'] = saveNewAccount($_POST['email'], $_POST['password']);
+		$json['msg'] = 'New account saved';
+	}
+
 	exit(json_encode($json));

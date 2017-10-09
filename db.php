@@ -437,7 +437,7 @@
 	*/
 	function saveTemplate($msg){
 		global $db;
-		$statement = $db->prepare('INSERT INTO msg_template SET msg = :msg');
+		$statement = $db->prepare('INSERT INTO msg_template (msg) VALUES = (:msg)');
 		$statement->execute(array(':msg' =>$msg));
 	}
 
@@ -486,6 +486,29 @@
 		global $db;
 		$statement = $db->prepare('UPDATE msg_template SET active=:state WHERE ID=:id');
 		$statement->execute(array(':id'=>intval($id), ':state'=>$state?1:0));
+	}
+
+	// ACCOUNTS
+
+	function saveNewAccount($email, $password){
+		global $db;
+		$statement = $db->prepare('INSERT INTO accounts (email, password) VALUES (:email, :password)');
+		$statement->execute(array(':email'=>$email, ':password'=>$password));
+		return $db->lastInsertId();
+	}
+
+	function getAllAccounts(){
+		global $db;
+		$statement = $db->prepare('SELECT * FROM accounts');
+		$statement->execute();
+		return $statement->fetchAll();
+	}
+
+	function getAccount($id){
+		global $db;
+		$statement = $db->prepare('SELECT * FROM accounts WHERE ID=:id');
+		$statement->execute(array(':id'=>$id));
+		return $statement->fetch(PDO::FETCH_ASSOC);
 	}
 
 	// GENERAL FUNCTIONS

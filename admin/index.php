@@ -33,6 +33,10 @@
 			<h3 class="alert alert-info">The bot is <span id="bot-state">???</span></h3>
 		</div>
 
+		<container class="accounts">
+			<button class="btn btn-md btn-primary open-modal" id="accounts">Add an account</button>
+		</container>
+
 		<div class="text-center">
 			<div class="column column-1 col-lg-3">
 				<h6 class="title">Settings</h6>
@@ -119,6 +123,36 @@
 <script>
 $(document).ready(function(){
 	var disconnect = false;
+
+	function getUrlParameter(sParam) {
+	    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+	        sURLVariables = sPageURL.split('&'),
+	        sParameterName,
+	        i;
+
+	    for (i = 0; i < sURLVariables.length; i++) {
+	        sParameterName = sURLVariables[i].split('=');
+
+	        if (sParameterName[0] === sParam) {
+	            return sParameterName[1] === undefined ? true : sParameterName[1];
+	        }
+	    }
+	};
+
+	var selectedAccount = getUrlParameter('account');
+	if(selectedAccount === undefined){
+		// SYNC call to get default accounts
+		$.ajax({
+			type: 'POST',
+			url: 'actions.php',
+			data: {'action': 'getAllAccounts'},
+			success: function(resp){
+				selectedAccount = resp.value[0].ID;
+			},
+			dataType: "json",
+			async:false
+		});
+	}
 
 	function botDisconnect(isDisconnect){
 		// global var
