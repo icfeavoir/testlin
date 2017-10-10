@@ -23,7 +23,7 @@
 
 		<h1 class="col-lg-12 text-center linkedin-color"><i class="fa fa-linkedin-square" aria-hidden="true"></i> LinkedIn Bot Admin Interface</h1>
 
-			<h3 class="col-lg-12 text-center alert alert-danger disconnect" hidden=true>The bot is disconnected!</span></h3>
+			<h3 class="col-lg-12 text-center alert alert-danger disconnect" hidden=true>This account is disconnected! You have to reconnect manually.</span> <button class="btn btn-sm btn-success" id="done-reconnect">Done!</button></h3>
 			<a href="watson_test.php">Watson test interface</a>
 		<div class="onOffBtn text-center">
 			<label class="switch">
@@ -148,7 +148,6 @@ $(document).ready(function(){
 		$('h3.disconnect').prop('hidden', !isDisconnect);
 
 		if(isDisconnect){
-			$('#on-off-btn').prop('checked', false);
 			$('#mark-read').prop('disabled', true);
 			$('#send-msg').prop('disabled', true);
 		}
@@ -255,35 +254,31 @@ $(document).ready(function(){
 	}
 
 	$('#on-off-btn').click(function(e){
-		if(disconnect){
-			e.preventDefault();
-			bootbox.confirm({
-			    message: "The bot has been disconnected by LinkedIn. You have to connect yourself and to validate the <i>I am not a robot</i> before set the bot on again. Have you already done it?",
-			    buttons: {
-			        confirm: {
-			            label: 'Yes',
-			            className: 'btn-success'
-			        },
-			        cancel: {
-			            label: 'No',
-			            className: 'btn-danger'
-			        }
-			    },
-			    callback: function (result) {
-			        if(result){
-			        	$('#on-off-btn').prop('checked', true);
-			        	botDisconnect(false);
-			        	post({'action': 'changeBotState', 'state': $('#on-off-btn').prop('checked')?1:0});
-			        	post({'action': 'changeBotDisconnect', 'disconnect': 0});
-						$('#bot-state').text($('#on-off-btn').prop('checked')?'On':'Off');
-			        }
-			    }
-			});
-		}else{
-        	post({'action': 'changeBotState', 'state': $(this).prop('checked')?1:0});
-			$('#bot-state').text($(this).prop('checked')?'On':'Off');
-		}
+       	post({'action': 'changeBotState', 'state': $(this).prop('checked')?1:0});
+		$('#bot-state').text($(this).prop('checked')?'On':'Off');
 	});
+	$('#done-reconnect').click(function(){
+		bootbox.confirm({
+		    message: "This account has been disconnected by LinkedIn. You have to connect yourself and to validate the <i>I am not a robot</i> before restart this account. Have you already done it?",
+		    buttons: {
+		        confirm: {
+		            label: 'Yes',
+		            className: 'btn-success'
+		        },
+		        cancel: {
+		            label: 'No',
+		            className: 'btn-danger'
+		        }
+		    },
+		    callback: function (result) {
+		        if(result){
+		        	botDisconnect(false);
+		        	post({'action': 'changeBotDisconnect', 'disconnect': 0}, selectedAccount);
+		        }
+		    }
+		});
+	});
+
 	$('#send-msg').click(function(){
 		if($('#answer-conv-msg' != '')){
 			post({'action': 'sendMsg', 'profile_id': $(this).attr('profile-id'), 'msg': $('#answer-conv-msg').val()},  selectedAccount);
@@ -344,7 +339,7 @@ $(document).ready(function(){
 
 	post({'action': 'getAllAccounts'}, selectedAccount, function(resp){
 		$.each(resp.value, function(key, value){
-			$('.listAccounts').append('<a href="index.php?account='+value.ID+'" id="account-link-'+value.ID+'">'+value.email+'</a> | ');
+			$('.listAccounts').append('<a style="background-color: '+(value.detected==1?'#ffbaba':'auto')+'" href="index.php?account='+value.ID+'" id="account-link-'+value.ID+'">'+value.email+'</a> | ');
 		});
 		$('#account-link-'+selectedAccount).css({backgroundColor: '#5bc0de', color: 'white'});
 	});

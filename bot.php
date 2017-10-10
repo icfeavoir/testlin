@@ -5,29 +5,40 @@
     require_once('db.php');
 
     // INITIALIZATION
-    $key_words_count = 0;
-    $page = 1;
-    $asked_connect_max = 10;
-
-    setAction('The bot is connecting to the account.');
-    $li = new Linkedin();
+    $accounts = getAllAccounts();
+    $account = null;
+    $selectedAccount = 0;
 
     $watson = new Watson(WATSON_USERNAME, WATSON_PASSWORD, WATSON_CONVERSATION);
+    $li = null;
+
+    $asked_connect_max = 10;
 
     while(true){
-	    if(getIsOn() && !checkBotDetected() && intval(date('G', time())) >= 8 && intval(date('H', time())) < 20){ // good hour :)
+        if(getIsOn() && count($accounts)>0 && intval(date('G', time())) >= 8 && intval(date('H', time())) < 20){ // good hour :)
+            $selectedAccount = $selectedAccount%count($accounts);
+            $account = $accounts[$selectedAccount];
+            setAction('The bot is connecting to this account: '.$account['email'], $account['ID']);
+
+            if($account['detected'] == 1){goto BotDetected;}
+
+            $li = new Linkedin($account['ID']);
+
+            if(checkBotDetected()){goto BotDetected;}    
             
             // for each iteration, we close curl to save cookie and we re open it to know if the bot is detected.
             $li->close();
-            $li = new Linkedin();
+            $li = new Linkedin($account['ID']);
             if(checkBotDetected()){goto BotDetected;}
 
-    	    $key_words_list = getKeyWords();
+            // all key words not done
+    	    $key_words_list = getKeyWords(false, $account['ID']);
     	    // SEND CONNECT REQUESTS
             if(count($key_words_list) > 0){
-                $key_words_count %= count($key_words_list);
-        	    $key_word = $key_words_list[$key_words_count]['key_word'];
-                $key_word_id = $key_words_list[$key_words_count]['ID'];
+                $key_word_selected = $key_words_list[0];
+                $page = $key_word_selected['page'];
+        	    $key_word = $key_word_selected['key_word'];
+                $key_word_id = $key_word_selected['ID'];
         	    
         	    // search people with this key word
                 $sendConnect = true;
@@ -36,7 +47,7 @@
                     if(checkBotDetected()){goto BotDetected;}
 
         	    	$result = $li->search_to_array($key_word, $page);
-                    setAction('The bot is doing a search with this key word: <b>'.$key_word.'</b> (page '.$page.').');
+                    setAction('The bot is doing a search with this key word: <b>'.$key_word.'</b> (page '.$page.').', $account['ID']);
                     do_sleep();
         	    	// sending connnect request if not already sent
                     if(count($result)==0){
@@ -46,15 +57,16 @@
                         $key_words_count++; // new key word
                     }
         	    	foreach ($result as $profile_id) {
-                        $friend = count(directQuery('SELECT ID FROM old_connect_asked WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT ID FROM old_connect_list WHERE profile_id="'.$profile_id.'"')) != 0;
+                        // old: karina's account, rest : actual accounts.
+                        $friend = count(directQuery('SELECT ID FROM old_connect_asked WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT ID FROM old_connect_list WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT ID FROM connect_asked WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT ID FROM connect_list WHERE profile_id="'.$profile_id.'"')) != 0;
                         if(!$friend){   //not already friend
             	    		$already = $li->connectTo($profile_id);
                             if($already != null){   // if sent, else means that we already asked this user so we can skip it
                                 $countConnect++;
-                                setAction('The bot found some users for the key word <b>'.$key_word.'</b> (page '.$page.').<br>It is sending a connect request to this ID: '.$profile_id.'.');
+                                setAction('The bot found some users for the key word <b>'.$key_word.'</b> (page '.$page.').<br>It is sending a connect request to this ID: '.$profile_id.'.', $account['ID']);
                 	    		do_sleep();
                             }else{
-                                setAction('Connection request already sent to those users.');
+                                setAction('Connection request already sent to those users.', $account['ID']);
                             }
                         }
         	    	}
@@ -62,6 +74,7 @@
                         $sendConnect=false;
                     }
                     $page++;
+                    setKeyWordPage($key_word_id, $page);
         	    }
             }
 
@@ -70,13 +83,13 @@
     	    // NEW CONNECTIONS
             //check and save new connections  
     		$newConnections = $li->checkNewConnections();
-            setAction('The bot is saving all users who accepted the connection.');
+            setAction('The bot is saving all users who accepted the connection.', $account['ID']);
             do_sleep();
             // accept connection requests
             $new = $li->acceptLastConnectionRequest();
             if($new != null){   // will add if not null -> new connection
                 $newConnections = array_merge($newConnections, $new);
-                setAction('The bot is accepting the connection requests that other users sent.');
+                setAction('The bot is accepting the connection requests that other users sent.', $account['ID']);
             }
             do_sleep();
 
@@ -84,7 +97,7 @@
 
             //send default msg to new connections
     		foreach ($newConnections as $key => $profile_id) {
-                if(count(directQuery('SELECT * FROM old_msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0){
+                if(count(directQuery('SELECT * FROM old_msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT * FROM msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0){
                     continue;
                 }
 
@@ -95,9 +108,9 @@
                 $defaultContext->lastName = $userInfos['lastName'];
                 $defaultContext->job = $userInfos['job'];
     			// send msg to new connections
-                $templates = getAllTemplates(true);
+                $templates = getAllTemplates(true, $account['ID']);
                 $selectedTemplate = rand(0, count($templates)-1);
-                setAction('The bot is sending default message n°'.$templates[$selectedTemplate]['ID'].' to this user ID: '.$profile_id.'.');   
+                setAction('The bot is sending default message n°'.$templates[$selectedTemplate]['ID'].' to this user ID: '.$profile_id.'.', $account['ID']);   
                 $li->sendMsg($profile_id, str_replace('<br />', '\n', $templates[$selectedTemplate]), 0, serialize($defaultContext));
     			do_sleep();
     		}
@@ -106,13 +119,13 @@
 
             // CHECK UNREAD CONVERSATION in LinkedIn
             $unreadConv = $li->getUnreadConversations();
-            setAction('The bot is checking new unread conversations.');
+            setAction('The bot is checking new unread conversations.', $account['ID']);
             do_sleep();
             foreach ($unreadConv as $key => $conv) {
                 // saving all new msgs in database
                 $msgs = $li->getAllMsg($conv);
                 foreach ($msgs as $key => $msg) {
-                    setAction('The bot is saving in database all new messages of conversation n°'.$conv);
+                    setAction('The bot is saving in database all new messages of conversation n°'.$conv, $account['ID']);
                     $li->saveMsg($msg);
                 }
                 do_sleep();
@@ -121,16 +134,16 @@
             if(checkBotDetected()){goto BotDetected;}
 
             // all unread conversation in database watson didn't try to answer yet
-            $convToAnswer = getMsgReceived(null, null, null, null, null, false, false);
+            $convToAnswer = getMsgReceived($account['ID'], null, null, null, null, null, false, false);
             if(is_array($convToAnswer) || is_object($convToAnswer)){
                 foreach ($convToAnswer as $key => $value) {
                     $conv = getConversation($value['conv_id']);
-                if($value['conv_id'] == '6318828055766855680'){ // !!!!!!
+                if($value['conv_id'] == '6318828055766855680'){ // !!!!!! ME WITH KARINA
                     $last = end($conv);
                     if($last['by_bot']){    // should not append but still...
                         setRead($last['conv_id']);
                     }else{
-                        setAction('The bot is trying to answer a message with Watson.');
+                        setAction('The bot is trying to answer a message with Watson.', $account['ID']);
                         $context = unserialize(getLastContext($last['conv_id']));
                         $watsonAnswer = $watson->chat($last['msg'], $context);
                         if(isset($watsonAnswer->output->text[0])){    // watson can answer
@@ -155,33 +168,36 @@
             }
 
             BotDetected:    //are for goto botDetected and start again the loop
+            if(checkBotDetected()){   // cookie not good!
+                setIsDisconnect(true, $account['ID']);
+                setAction('This account is disconnected but tries to reconnect: '.$account['email'], $account['ID']);
+                // try to reconnect
+                $li = new Linkedin($account['ID']);
+                $li->close();   // save cookies and see if connected
+                $li = new Linkedin($account['ID']);
+                if(checkBotDetected()){  // can't reconnect
+                    setAction('This account is disconnected, you have to reconnect (with a human way): '.$account['email'], $account['ID']);
+                }else{
+                    setAction('This account reconnected with success: '.$account['email'], $account['ID']);
+                    setIsDisconnect(false, $account['ID']);
+                }
+            }
 
 	    }else{
             if(!getIsOn()){
-                setAction('Please turn me on!');
-            }else if(checkBotDetected()){   // cookie not good!
-                setIsOn(false);
-                setIsDisconnect(true);
-                setAction('The bot is disconnected but tries to reconnect...');
-                // try to reconnect
-                $li = new Linkedin(USERNAME, PASSWORD);
-                $li->close();   // save cookies and see if connected
-                $li = new Linkedin();
-                if(checkBotDetected()){  // can't reconnect
-                    setAction('The bot is disconnected, you have to reconnect (with a human way)!');
-                }else{
-                    setAction('Reconnected with success!');
-                    setIsDisconnect(false);
-                    setIsOn(true);
-                }
+                setAllAction('Please turn me on!');
+            }else if(count($accounts) == 0){
+                setAllAction('There is no account saved.');
             }else{
-                setAction('The bot is sleeping from 10 PM until 7 AM');
+                setAllAction('The bot is sleeping from 10 PM until 8 AM');
             }
 	    	do_sleep(30);
 	    }
+
+        $selectedAccount++;
     }
 
-    setAction('THE BOT STOPPED, YOU HAVE TO RELAUNCH IT ON THE SERVER');
+    setAllAction('THE BOT STOPPED, YOU HAVE TO RELAUNCH IT ON THE SERVER');
 
     $watson->close();
     $li->close();
@@ -190,15 +206,15 @@
         if($time != null){
             sleep($time);
         }else{
-            $max_time_sleep = 180; //seconds
-            sleep(rand(45, $max_time_sleep));
+            $max_time_sleep = 120; //seconds
+            sleep(rand(60, $max_time_sleep));
         }
     }
 
     function checkBotDetected(){
-        global $li;
+        global $li, $account;
         $li->close();
-        $li = new Linkedin();
+        $li = new Linkedin($account['ID']);
         return $li->getBotDetected();
     }
 

@@ -4,7 +4,8 @@ use linkedinBot;
 CREATE TABLE IF NOT EXISTS `accounts` (
 	`ID` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	`email` text NOT NULL,
-	`password` text NOT NULL
+	`password` text NOT NULL,
+	`detected` boolean NOT NULL DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS `bot_on_off` (
@@ -56,6 +57,7 @@ CREATE TABLE IF NOT EXISTS `msg_conversation` (
 CREATE TABLE IF NOT EXISTS `key_word_list` (
 	`ID` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	`key_word` varchar(255) NOT NULL,
+	`page` int NOT NULL DEFAULT 1,
 	`done` boolean NOT NULL DEFAULT false,
 	`accountID` int NOT NULL
 );
@@ -69,25 +71,5 @@ CREATE TABLE IF NOT EXISTS `msg_template` (
 );
 
 
--- DEFAULT VALUES IF NOT ALREADY INSERTED
+-- DEFAULT VALUE
 INSERT INTO bot_on_off (isOn) SELECT 0 WHERE NOT EXISTS (SELECT * FROM bot_on_off);
-INSERT INTO bot_disconnect (is_disconnect) SELECT 0 WHERE NOT EXISTS (SELECT * FROM bot_disconnect);
-INSERT INTO msg_template (msg) SELECT 'YouPic' WHERE NOT EXISTS (SELECT * FROM msg_template);
-INSERT INTO bot_action (action) SELECT 'Nothing' WHERE NOT EXISTS (SELECT * FROM bot_action);
-
--- FOREIGN KEYS
-
-ALTER TABLE `bot_disconnect`
-  ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;
-ALTER TABLE `bot_action`
-  ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;
-ALTER TABLE `connect_asked`
-  ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;
-ALTER TABLE `connect_list`
-  ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;
-ALTER TABLE `msg_conversation`
-  ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;
-ALTER TABLE `key_word_list`
-  ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;
-ALTER TABLE `msg_template`
-  ADD FOREIGN KEY (`accountID`) REFERENCES accounts(ID) ON DELETE NO ACTION;

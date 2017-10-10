@@ -25,11 +25,15 @@
 				$this->_password = $account['password'];
 				$this->_accountID = $account['ID'];
 
-				$this->login();
-				$this->_myProfileId = $this->fetch_value($this->page('in/'), 'miniProfile:', '&');
-				file_put_contents('id_'.$this->_accountID, $this->_myProfileId);
+				if($this->getBotDetected()){
+					$this->login();
+					$this->_myProfileId = $this->fetch_value($this->page('in/'), 'miniProfile:', '&');
+					file_put_contents('id_'.$this->_accountID, $this->_myProfileId);
+				}else{
+					$this->_myProfileId = file_get_contents(ROOTPATH.'/id_'.$this->_accountID);
+				}			
 			}else{
-				$this->_myProfileId = file_get_contents(ROOTPATH.'/id_'.$this->_accountID);
+				return null;
 			}
 		}
 

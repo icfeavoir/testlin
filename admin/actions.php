@@ -12,7 +12,12 @@
 		exit(json_encode($json));
 	}
 
-
+	// GENERAL 
+	else if($_POST['action'] == 'delete'){ 
+		$check = delete($_POST['table'], $_POST['id'], $account); 
+	   	$json['msg'] = $check?'Item deleted':'An error occured'; 
+	   	$json['success'] = $check; 
+	}
 	// INDEX PAGE
 
 	// DISCONNECT
@@ -135,6 +140,10 @@
 	else if($_POST['action'] == 'saveNewAccount'){
 		$json['newId'] = saveNewAccount($_POST['email'], $_POST['password']);
 		$json['msg'] = 'New account saved';
+	}
+	else if($_POST['action'] == 'deleteAccount'){
+		deleteAccount($_POST['id']);
+		$json['msg'] = 'Account deleted';
 	}
 
 	exit(json_encode($json));

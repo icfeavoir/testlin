@@ -58,7 +58,7 @@ $(document).ready(function(){
 					    callback: function (result) {
 					        if(result){
 					        	clicked.parents('tr').remove();
-					        	post({'action':'delete', 'table':'accounts', 'id':newId}, selectedAccount);
+					        	post({'action':'deleteAccount', 'id':newId}, selectedAccount);
 					        }
 					    }
 					});
@@ -89,8 +89,9 @@ $(document).ready(function(){
 				    },
 				    callback: function (result) {
 				        if(result){
+				        	console.log(value.ID);
 				        	clicked.parents('tr').remove();
-				        	post({'action':'delete', 'table':'accounts', 'id':value.ID}, selectedAccount);
+				        	post({'action':'deleteAccount', 'id':value.ID}, selectedAccount);
 				        }
 				    }
 				});

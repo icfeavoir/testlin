@@ -49,6 +49,11 @@
 	*
 	* @param string $action The action
 	*/
+	function setAllAction($action){
+		global $db;
+		$statement = $db->prepare('UPDATE bot_action SET action = :action');
+		$statement->execute(array(':action'=>$action));
+	}
 	function setAction($action, $account){
 		global $db;
 		$statement = $db->prepare('UPDATE bot_action SET action = :action WHERE accountID=:account');
@@ -429,6 +434,13 @@
 	}
 
 
+	function setKeyWordPage($id, $page){
+		global $db;
+		$statement = $db->prepare('UPDATE key_word_list SET page=:page WHERE ID = :key_word');
+		$statement->execute(array(':page'=>$page, ':key_word' => $id));
+	}
+
+
 	/**
 	* Save template to send in DB
 	*
@@ -494,7 +506,12 @@
 		global $db;
 		$statement = $db->prepare('INSERT INTO accounts (email, password) VALUES (:email, :password)');
 		$statement->execute(array(':email'=>$email, ':password'=>$password));
-		return $db->lastInsertId();
+		$id = $db->lastInsertId();
+		$statement = $db->prepare('INSERT INTO bot_action (action, accountID) VALUES (:action, :accountID)');
+		$statement->execute(array(':action'=>'', ':accountID'=>$id));
+		$statement = $db->prepare('INSERT INTO bot_disconnect (is_disconnect, accountID) VALUES (:disco, :accountID)');
+		$statement->execute(array(':disco'=>0, ':accountID'=>$id));
+		return $id;
 	}
 
 	function getAllAccounts(){
@@ -509,6 +526,12 @@
 		$statement = $db->prepare('SELECT * FROM accounts WHERE ID=:id');
 		$statement->execute(array(':id'=>$id));
 		return $statement->fetch(PDO::FETCH_ASSOC);
+	}
+
+	function deleteAccount($id){
+		global $db;
+		$statement = $db->prepare('DELETE FROM accounts WHERE ID=:id');
+		$statement->execute(array(':id'=>$id));
 	}
 
 	// GENERAL FUNCTIONS
