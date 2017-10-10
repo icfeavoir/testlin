@@ -46,7 +46,7 @@
 		    if(!(is_file(ROOTPATH.'/cookie_'.$this->_accountID.'.txt'))){
 		        touch(ROOTPATH.'/cookie_'.$this->_accountID.'.txt');
 		    }else{ 	// empty the file
-		    	$f = @fopen(ROOTPATH."/cookie_'.$this->_accountID.'.txt", "r+");
+		    	$f = @fopen(ROOTPATH.'/cookie_'.$this->_accountID.".txt", "r+");
 		    	if ($f !== false) {
 		    	    ftruncate($f, 0);
 		    	    fclose($f);
@@ -197,7 +197,7 @@
 
 		public function search($search, $page = 1, $tab = 'people'){
 			if(!in_array($tab, array('index', 'people', 'jobs', 'companies', 'groups', 'school')))
-				exit('This tab doesn\'t exist.');
+				return('This tab doesn\'t exist.');
 			if($tab === 'jobs')
 				$url = 'jobs/search';
 			else
@@ -462,6 +462,8 @@
 		}
 
 		public function getBotDetected(){
+			if(!is_file(ROOTPATH.'/cookie_'.$this->_accountID.'.txt') || !is_file(ROOTPATH.'/id_'.$this->_accountID))
+				return true;
 			$cookie = file_get_contents(ROOTPATH.'/cookie_'.$this->_accountID.'.txt');
 			if(strpos($cookie, 'li_at') != false && strpos($cookie, 'delete me') == false){ 
 			    return false;	// not detected

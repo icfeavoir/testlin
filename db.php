@@ -94,7 +94,7 @@
 	*/
 	function getAllConnectionsSent($connect){
 		global $db;
-		$statement = $db->prepare('SELECT * FROM connect_asked WHERE connectID=:connect ORDER BY ID');
+		$statement = $db->prepare('SELECT * FROM connect_asked WHERE accountID=:connect ORDER BY ID');
 		$statement->execute(array(':connect'=>$connect));
 		return $statement->fetchAll();
 	}

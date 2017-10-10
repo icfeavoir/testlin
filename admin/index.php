@@ -200,7 +200,7 @@ $(document).ready(function(){
 
 
 	function getMsgConversation(conv_id){
-		post({'action': 'getMsgConv', 'conv': conv_id}, function(resp){
+		post({'action': 'getMsgConv', 'conv': conv_id}, selectedAccount, function(resp){
 			var msgs = resp.msgs;
 			// get user informations (name & jobs)
 			post({'action': 'getUserInformations', 'profile_id': msgs[0].profile_id}, selectedAccount, function(resp){
