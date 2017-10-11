@@ -283,7 +283,7 @@
 		*/
 		public function receiveMsg($msg){
 			// check if not saved yet and not msg sent
-			if(getMsgReceived(null, null, $msg['msg_id']) == null && $msg['by']!='bot'){
+			if(getMsgReceived($this->_accountID, null, null, $msg['msg_id']) == null && $msg['by']!='bot'){
 				// previous msg from the bot
 				$prev = getLastMsg($msg['conv_id']);
 				$template = $prev['template_msg']??0;
