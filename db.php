@@ -508,7 +508,7 @@
 		$statement->execute(array(':email'=>$email, ':password'=>$password));
 		$id = $db->lastInsertId();
 		$statement = $db->prepare('INSERT INTO bot_action (action, accountID) VALUES (:action, :accountID)');
-		$statement->execute(array(':action'=>'', ':accountID'=>$id));
+		$statement->execute(array(':action'=>'Not connected yet', ':accountID'=>$id));
 		$statement = $db->prepare('INSERT INTO bot_disconnect (is_disconnect, accountID) VALUES (:disco, :accountID)');
 		$statement->execute(array(':disco'=>0, ':accountID'=>$id));
 		return $id;
