@@ -161,12 +161,13 @@
 	*/
 	function getMsgSent($account, $profile_id='%%', $conv_id='%%', $msg_id='%%', $template='%%', $watson_msg='%%'){
 		global $db;
+		$account = $account==0?'%%':$account;
 		$profile_id = empty($profile_id)?'%%':$profile_id;
 		$conv_id = empty($conv_id)?'%%':$conv_id;
 		$msg_id = empty($msg_id)?'%%':$msg_id;
 		$template = empty($template)?'%%':$template;
 		$watson_msg = empty($watson_msg)?'%%':$watson_msg;
-		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=1 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template  AND watson_msg LIKE :watson_msg AND accountID=:account ORDER BY ID');
+		$statement = $db->prepare('SELECT * FROM msg_conversation WHERE by_bot=1 AND profile_id LIKE :profile_id AND conv_id LIKE :conv_id AND msg_id LIKE :msg_id AND template_msg LIKE :template  AND watson_msg LIKE :watson_msg AND accountID LIKE :account ORDER BY ID');
 		$statement->execute(array(':profile_id'=>$profile_id, ':conv_id'=>$conv_id, ':msg_id'=>$msg_id, ':template'=>$template, ':watson_msg'=>$watson_msg, ':account'=>$account));
 		return $statement->rowCount()==0?null:$statement->fetchAll(PDO::FETCH_ASSOC);
 	}

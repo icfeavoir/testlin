@@ -34,7 +34,7 @@ $(document).ready(function(){
 			$('.template-manager').append('<tr id="'+value.ID+'"><td><div class="checkbox"><label><input type="checkbox" class="active" value="'+value.ID+'" '+(value.active==1?'checked':'')+'></label></div></td><td>'+value.ID+'</td><td>'+value.msg+'</td><td>'+value.created+'</td><td><i class="fa fa-plus plus"></i></td><td><i class="fa fa-trash delete"></i></td></tr>');
 			// show more
 			$('.template-manager tr[id="'+value.ID+'"] i.plus').click(function(){
-				openModal('template_unique', 0, {'template':value.ID});
+				openModal('template_unique', selectedAccount, {'template':value.ID});
 			});
 			// delete
 			$('.template-manager tr[id="'+value.ID+'"] i.delete').click(function(){

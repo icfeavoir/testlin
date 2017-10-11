@@ -118,7 +118,7 @@
 	}
 	else if($_POST['action'] == 'getNumberSent'){
 		$json['showMsg'] = false;
-		$number = count(getMsgSent(null, null, null, $_POST['template']));
+		$number = count(getMsgSent($account, null, null, null, $_POST['template']));
 		$total = count(directQuery('SELECT ID FROM msg_conversation WHERE by_bot=true AND template_msg!=0 AND accountID='.$account));
 		$percent = $total!=0?round($number*100/$total):0;
 		$json['value'] = $number.' ('.$percent.'% of first message with this template)';
