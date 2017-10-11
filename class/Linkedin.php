@@ -147,7 +147,7 @@
 			if($profile_id === null){
 				return null;
 			}
-			if($check_in_db && isConnectSent($profile_id)!==false){	// already sent
+			if($check_in_db && isConnectSent($profile_id, $this->_accountID)!==false){	// already sent
 				return null;
 			}
 
