@@ -18,18 +18,19 @@
         if(getIsOn() && count($accounts)>0 && intval(date('G', time())) >= 8 && intval(date('H', time())) < 20){ // good hour :)
             $selectedAccount = $selectedAccount%count($accounts);
             $account = $accounts[$selectedAccount];
-            setAction('The bot is connecting to this account: '.$account['email'], $account['ID']);
+            setAllAction('The bot is using this account: '.$account['email']);
+            setAction('The bot trie to connect...', $account['ID']);
 
             if($account['detected'] == 1){goto BotDetected;}
 
             $li = new Linkedin($account['ID']);
-
-            if(checkBotDetected()){goto BotDetected;}    
-            
             // for each iteration, we close curl to save cookie and we re open it to know if the bot is detected.
             $li->close();
             $li = new Linkedin($account['ID']);
+
             if(checkBotDetected()){goto BotDetected;}
+
+            setAction('The bot is connected.', $account['ID']);
 
             // all key words not done
     	    $key_words_list = getKeyWords(false, $account['ID']);

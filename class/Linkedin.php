@@ -18,7 +18,7 @@
 
 				$this->login();
 				$this->_myProfileId = $this->fetch_value($this->page('in/'), 'miniProfile:', '&');
-				file_put_contents('id_'.$this->_accountID, $this->_myProfileId);
+				file_put_contents(ROOTPATH.'/id_'.$this->_accountID, $this->_myProfileId);
 			}else if($user != null && $pass == null){	// connection from an account in DB
 				$account = getAccount($user);
 				$this->_username = $account['email'];
@@ -28,7 +28,7 @@
 				if($this->getBotDetected()){
 					$this->login();
 					$this->_myProfileId = $this->fetch_value($this->page('in/'), 'miniProfile:', '&');
-					file_put_contents('id_'.$this->_accountID, $this->_myProfileId);
+					file_put_contents(ROOTPATH.'/id_'.$this->_accountID, $this->_myProfileId);
 				}else{
 					$this->_myProfileId = file_get_contents(ROOTPATH.'/id_'.$this->_accountID);
 				}			
@@ -75,7 +75,6 @@
 		    foreach ($var as $key => $value){
 		        $post_array[] = urlencode($key) . '=' . urlencode($value);
 		    }
-
 		    // Now we can log in
 		    $login = $this->page('/uas/login-submit', $post_array, [], true, false);
 		    return $login;
@@ -127,7 +126,6 @@
 				curl_setopt($this->_ch, CURLOPT_HEADER, true);
 				curl_setopt($this->_ch, CURLOPT_HTTPHEADER, $headers);
 			}
-
 		    $content = curl_exec($this->_ch);
 		    if($urlReplace){
 		    	// javascript to access to the page (because of nodeJS)
@@ -465,7 +463,7 @@
 			if(!is_file(ROOTPATH.'/cookie_'.$this->_accountID.'.txt') || !is_file(ROOTPATH.'/id_'.$this->_accountID))
 				return true;
 			$cookie = file_get_contents(ROOTPATH.'/cookie_'.$this->_accountID.'.txt');
-			if(strpos($cookie, 'li_at') != false && strpos($cookie, 'delete me') == false){ 
+			if(strpos($cookie, 'delete me') == false && file_get_contents(ROOTPATH.'/id_'.$this->_accountID) != ""){ 
 			    return false;	// not detected
 			}else{
 			    return true;
