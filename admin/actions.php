@@ -141,6 +141,11 @@
 		$json['newId'] = saveNewAccount($_POST['email'], $_POST['password']);
 		$json['msg'] = 'New account saved';
 	}
+	else if($_POST['action'] == 'changeAccountActive'){
+		$state = $_POST['state'] == 'true';
+		changeAccountActive($_POST['id'], $state);
+		$json['msg'] = 'This account is now '.($state?'':'in').'active'.$_POST['id'];
+	}
 	else if($_POST['action'] == 'deleteAccount'){
 		deleteAccount($_POST['id']);
 		$json['msg'] = 'Account deleted';

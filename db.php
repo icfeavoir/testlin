@@ -521,11 +521,24 @@
 		return $statement->fetchAll();
 	}
 
+	function getActiveAccounts(){
+		global $db;
+		$statement = $db->prepare('SELECT * FROM accounts WHERE active=1');
+		$statement->execute();
+		return $statement->fetchAll();
+	}
+
 	function getAccount($id){
 		global $db;
 		$statement = $db->prepare('SELECT * FROM accounts WHERE ID=:id');
 		$statement->execute(array(':id'=>$id));
 		return $statement->fetch(PDO::FETCH_ASSOC);
+	}
+
+	function changeAccountActive($id, $active){
+		global $db;
+		$statement = $db->prepare('UPDATE accounts SET active=:active WHERE ID=:id');
+		$statement->execute(array(':id'=>$id, ':active'=>$active?1:0));
 	}
 
 	function deleteAccount($id){

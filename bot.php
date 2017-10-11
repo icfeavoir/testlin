@@ -5,7 +5,7 @@
     require_once('db.php');
 
     // INITIALIZATION
-    $accounts = getAllAccounts();
+    $accounts = getActiveAccounts();
     $account = null;
     $selectedAccount = 0;
 
@@ -15,6 +15,7 @@
     $asked_connect_max = 10;
 
     while(true){
+        $accounts = getActiveAccounts();
         if(getIsOn() && count($accounts)>0 && intval(date('G', time())) >= 8 && intval(date('H', time())) < 20){ // good hour :)
             $selectedAccount = $selectedAccount%count($accounts);
             $account = $accounts[$selectedAccount];

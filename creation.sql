@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS `accounts` (
 	`ID` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	`email` text NOT NULL,
 	`password` text NOT NULL,
-	`detected` boolean NOT NULL DEFAULT false
+	`detected` boolean NOT NULL DEFAULT false,
+	`active` boolean NOT NULL DEFAULT true
 );
 
 CREATE TABLE IF NOT EXISTS `bot_on_off` (
