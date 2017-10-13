@@ -39,7 +39,7 @@ $(document).ready(function(){
 			var email = $('#email').val();
 			var password = $('#password').val();
 			post({'action': 'saveNewAccount', 'email': email, 'password': password}, selectedAccount);
-			console.log('ok');
+			location.reload();	
 		}
 	});
 	// all accounts
