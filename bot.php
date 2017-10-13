@@ -19,6 +19,7 @@
     $asked_connect_max = 10;
 
     while(true){
+        //bot on && account active && not night !
         if(getIsOn() && getAccount($account['ID'])['active'] && intval(date('H', time())) >= 8 && intval(date('H', time())) < 20){ // good hour :)
             
             // check if account has not been inactivated or deleted
@@ -27,12 +28,9 @@
                 exit('Account has been deleted');
             }else if($account['active'] == false){
                 setAction('This account is not activated', $account['ID']);
-                // goto BotDetected;
+                goto BotDetected;
             }        
-            setAction(time(), $account['ID']);
 
-            do_sleep(2);
-/*
             if($account['detected'] == 1){goto BotDetected;}
 
             $li = new Linkedin($account['ID']);
@@ -194,7 +192,7 @@
                     setAction('This account reconnected with success: '.$account['email'], $account['ID']);
                     setIsDisconnect(false, $account['ID']);
                 }
-            }*/
+            }
 	    }else{
             if(!getIsOn()){
                 setAllAction('Please turn me on!');
