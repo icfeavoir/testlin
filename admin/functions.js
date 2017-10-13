@@ -1,6 +1,7 @@
 function post(data, account=0, callback=function(){}){
 	$.post( "actions.php?account="+account, data).done(function( resp ){
 		resp = JSON.parse(resp);
+		if(resp.log) console.log(resp.log);
 		if(resp.showMsg)
 			showBar(resp.success, resp.msg);
 		callback(resp);

@@ -5,23 +5,34 @@
     require_once('db.php');
 
     // INITIALIZATION
-    $accounts = getActiveAccounts();
-    $account = null;
-    $selectedAccount = 0;
+    date_default_timezone_set('Europe/Stockholm');
+
+    $account = getAccount(count($argv)>1 ? intval($argv[1]) : 0);
+    if($account == null){
+        exit('Not an account');
+    }else if($account['active'] == false){
+        exit('Account not activate');
+    }
 
     $watson = new Watson(WATSON_USERNAME, WATSON_PASSWORD, WATSON_CONVERSATION);
-    $li = null;
 
     $asked_connect_max = 10;
 
     while(true){
-        $accounts = getActiveAccounts();
-        if(getIsOn() && count($accounts)>0 && intval(date('G', time())) >= 8 && intval(date('H', time())) < 20){ // good hour :)
-            $selectedAccount = $selectedAccount%count($accounts);
-            $account = $accounts[$selectedAccount];
-            setAllAction('The bot is using this account: '.$account['email']);
-            setAction('The bot trie to connect...', $account['ID']);
+        if(getIsOn() && getAccount($account['ID'])['active'] && intval(date('H', time())) >= 8 && intval(date('H', time())) < 20){ // good hour :)
+            
+            // check if account has not been inactivated or deleted
+            $account = getAccount($account['ID']);
+            if($account == null){
+                exit('Account has been deleted');
+            }else if($account['active'] == false){
+                setAction('This account is not activated', $account['ID']);
+                // goto BotDetected;
+            }        
+            setAction(time(), $account['ID']);
 
+            do_sleep(2);
+/*
             if($account['detected'] == 1){goto BotDetected;}
 
             $li = new Linkedin($account['ID']);
@@ -59,7 +70,7 @@
                         $key_words_count++; // new key word
                     }
         	    	foreach ($result as $profile_id) {
-                        // old: karina's account, rest : actual accounts.
+                        // old: karina's account, rest : actual account.
                         $friend = count(directQuery('SELECT ID FROM old_connect_asked WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT ID FROM old_connect_list WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT ID FROM connect_asked WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT ID FROM connect_list WHERE profile_id="'.$profile_id.'"')) != 0;
                         if(!$friend){   //not already friend
             	    		$already = $li->connectTo($profile_id);
@@ -169,37 +180,34 @@
                 }
             }
 
-            BotDetected:    //are for goto botDetected and start again the loop
-            if(checkBotDetected()){   // cookie not good!
+            BotDetected:    // goto botDetected and start again the loop
+            if($li->getBotDetected()){   // cookie not good!
                 setIsDisconnect(true, $account['ID']);
                 setAction('This account is disconnected but tries to reconnect: '.$account['email'], $account['ID']);
                 // try to reconnect
                 $li = new Linkedin($account['ID']);
                 $li->close();   // save cookies and see if connected
                 $li = new Linkedin($account['ID']);
-                if(checkBotDetected()){  // can't reconnect
+                if($li->getBotDetected()){  // can't reconnect
                     setAction('This account is disconnected, you have to reconnect (with a human way): '.$account['email'], $account['ID']);
                 }else{
                     setAction('This account reconnected with success: '.$account['email'], $account['ID']);
                     setIsDisconnect(false, $account['ID']);
                 }
-            }
-
+            }*/
 	    }else{
             if(!getIsOn()){
                 setAllAction('Please turn me on!');
-            }else if(count($accounts) == 0){
-                setAllAction('There is no account saved.');
+            }else if(getAccount($account['ID'])['active']){
+                setAction('This account is not active', $acount['ID']);
             }else{
-                setAllAction('The bot is sleeping from 10 PM until 8 AM');
+                setAction('The bot is sleeping until 8 AM', $account['ID']);
             }
 	    	do_sleep(30);
 	    }
-
-        $selectedAccount++;
     }
 
-    setAllAction('THE BOT STOPPED, YOU HAVE TO RELAUNCH IT ON THE SERVER');
+    setAction('An error occured with this account', $account['ID']);
 
     $watson->close();
     $li->close();
@@ -217,7 +225,8 @@
         global $li, $account;
         $li->close();
         $li = new Linkedin($account['ID']);
-        return $li->getBotDetected();
+        // detected or off
+        return $li->getBotDetected() || !getIsOn() || getAccount($account['ID']) == null || !getAccount($account['ID'])['active'];
     }
 
     /*

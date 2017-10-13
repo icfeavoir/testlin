@@ -38,35 +38,8 @@ $(document).ready(function(){
 			var newId = -1;
 			var email = $('#email').val();
 			var password = $('#password').val();
-			post({'action': 'saveNewAccount', 'email': email, 'password': password}, selectedAccount, function(resp){
-				newId = resp.newId;
-				$('.account-manager').append('<tr id="'+newId+'"><td>'+newId+'</td><td>'+email+'</td><td>'+password+'</td><td><i class="fa fa-trash delete"></i></td></tr>');
-				// delete
-				$('.account-manager tr[id="'+newId+'"] i.delete').click(function(){
-					var clicked = $(this);
-					bootbox.confirm({
-					    message: "Are you sure you want to delete this account : "+email,
-					    buttons: {
-					        confirm: {
-					            label: 'Yes',
-					            className: 'btn-success'
-					        },
-					        cancel: {
-					            label: 'No',
-					            className: 'btn-danger'
-					        }
-					    },
-					    callback: function (result) {
-					        if(result){
-					        	clicked.parents('tr').remove();
-					        	post({'action':'deleteAccount', 'id':newId}, selectedAccount);
-					        }
-					    }
-					});
-				});
-			});
-			$('#email').val('');
-			$('#password').val('');
+			post({'action': 'saveNewAccount', 'email': email, 'password': password}, selectedAccount);
+			console.log('ok');
 		}
 	});
 	// all accounts
@@ -90,7 +63,6 @@ $(document).ready(function(){
 				    },
 				    callback: function (result) {
 				        if(result){
-				        	console.log(value.ID);
 				        	clicked.parents('tr').remove();
 				        	post({'action':'deleteAccount', 'id':value.ID}, selectedAccount);
 				        }

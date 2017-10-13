@@ -512,7 +512,9 @@
 		$statement->execute(array(':action'=>'Not connected yet', ':accountID'=>$id));
 		$statement = $db->prepare('INSERT INTO bot_disconnect (is_disconnect, accountID) VALUES (:disco, :accountID)');
 		$statement->execute(array(':disco'=>0, ':accountID'=>$id));
-		return $id;
+
+		// launch the bot on this account;
+		exec('cd && cd '.FULL_PATH.' && nohup php bot.php '.$id.' &');
 	}
 
 	function getAllAccounts(){
