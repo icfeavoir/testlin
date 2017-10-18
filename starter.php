@@ -4,7 +4,7 @@
 
     /* INDEX */
 
-    $accounts = getActiveAccounts();
+    $accounts = getAllAccounts();
     $list = array();
     foreach ($accounts as $key => $value) {
         array_push($list, '(nohup php bot.php '.$value['ID'].' &)');
