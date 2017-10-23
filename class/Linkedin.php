@@ -313,7 +313,7 @@
 
 		}
 
-		public function markConversationAsRead($conv_id){
+		public function markConversationAsRead($conv_id, $sleep = 30){
 			$payload = '{"patch":{"$set":{"read":true}}}';
 			$headers = $this->getHeaders();
 			array_push($headers, 'referer: https://www.linkedin.com/messaging/thread/'.$conv_id.'/');
@@ -322,18 +322,19 @@
 		}
 
 		public function checkNewConnections(){
+			// check all connections until 25 null (so we came back at the beginnig) or the last saved connection
 			$headers = $this->getHeaders();
 			$run = true;
 
 			$count = 0;
 			$newConnections = [];
-			$notFound = 25;
+			$notFound = 0;
 			while($run){
 				$connection = $this->page('voyager/api/relationships/connections?count=1&sortType=RECENTLY_ADDED&start='.$count, [], $headers);
-				sleep(1);
+				sleep($sleep);
 				$id = $this->fetch_value($connection, 'miniProfile:', '"');
 
-				if($notFound > 50){	// to save all the first time this function is called -> if 50 null following, means you got all!
+				if($notFound > 25){	// to save all the first time this function is called -> if 50 null following, means you got all!
 					$run = false;
 				}
 
@@ -350,6 +351,7 @@
 					$run = false;
 				}
 				$count++;
+				sleep($sleep);
 			}
 			return $newConnections;
 		}
@@ -359,6 +361,10 @@
 		* @param @createdBefore (optional) a date in LinkedIn format
 		*/
 		function getAllConversations($createdBefore=null){	// to use carrefully, could be long...
+			/*
+				this function get all conversation in the limit of Linkedin to get conversations.
+				If you really want all conversations, you should use it recursively...
+			*/
 			$headers = $this->getHeaders();
 			$createdBefore = $createdBefore??$this->timestampToLinkedinDate(time());
 
@@ -372,6 +378,25 @@
 				}
 			}
 			return $conversation_list;
+		}
+
+		public function saveAllConversations($sleep = 30){
+			$createdBefore = $this->timestampToLinkedinDate(time());
+			do{
+				$convs = $this->getAllConversations($createdBefore);
+				foreach ($convs as $conv) {
+					if(getConversation($conv) != array()){	// empty array == not saved in DB
+						$saved = true;
+					}else{
+						sleep($sleep);
+						$msgs = $this->getAllMsg($conv);
+						foreach ($msgs as $msg) {
+							$this->saveMsg($msg);
+						}
+						$createdBefore = $msg['linkedinDate'];
+					}
+				}
+			}while($saved = false);
 		}
 
 		function getUnreadConversations(){
@@ -457,6 +482,15 @@
 				unset($conv[count($conv)-1]);
 			}while($id == $this->_myProfileId || $id == '');
 			return $id;
+		}
+
+		public function conversationExists($user_id){
+			// return true if there is already a conv with this user, else false
+			$headers = $this->getHeaders();
+			array_push($headers, 'x-restli-protocol-version: 2.0.0');
+			$conv = $this->page('voyager/api/messaging/conversations?keyVersion=control&q=participants&recipients=List('.$user_id.')', [], $headers);
+			$conv = json_decode('{'.$this->fetch_value($conv, '{'));
+			return $conv->elements != array();
 		}
 
 		public function getBotDetected(){

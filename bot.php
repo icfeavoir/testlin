@@ -61,14 +61,15 @@
                     setAction('The bot is doing a search with this key word: <b>'.$key_word.'</b> (page '.$page.').', $account['ID']);
                     do_sleep();
         	    	// sending connnect request if not already sent
-                    if(count($result)==0){
+                    if(count($result)==0 && !checkBotDetected()){  // make difference between a search with no result and a search when disconnected
                         $page = 1;  //reinit;
                         $sendConnect = false;
                         setKeyWordDone($key_word_id);
                         $key_words_count++; // new key word
                     }
         	    	foreach ($result as $profile_id) {
-                        // old: karina's account, rest : actual account.
+                        if(checkBotDetected()){goto BotDetected;}
+                        // if not friend with Karina or another account
                         $friend = count(directQuery('SELECT ID FROM old_connect_asked WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT ID FROM old_connect_list WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT ID FROM connect_asked WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT ID FROM connect_list WHERE profile_id="'.$profile_id.'"')) != 0;
                         if(!$friend){   //not already friend
             	    		$already = $li->connectTo($profile_id);
@@ -93,8 +94,8 @@
             
     	    // NEW CONNECTIONS
             //check and save new connections  
-    		$newConnections = $li->checkNewConnections();
             setAction('The bot is saving all users who accepted the connection.', $account['ID']);
+    		$newConnections = $li->checkNewConnections();
             do_sleep();
             // accept connection requests
             $new = $li->acceptLastConnectionRequest();
@@ -108,7 +109,9 @@
 
             //send default msg to new connections
     		foreach ($newConnections as $key => $profile_id) {
-                if(count(directQuery('SELECT * FROM old_msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT * FROM msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0){
+                if(checkBotDetected()){goto BotDetected;}
+                // msg to this user with Karina or another account or this account in human way ?
+                if(count(directQuery('SELECT * FROM old_msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT * FROM msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0 || $li->conversationExists()){
                     continue;
                 }
 
@@ -133,6 +136,7 @@
             setAction('The bot is checking new unread conversations.', $account['ID']);
             do_sleep();
             foreach ($unreadConv as $key => $conv) {
+                if(checkBotDetected()){goto BotDetected;}
                 // saving all new msgs in database
                 $msgs = $li->getAllMsg($conv);
                 foreach ($msgs as $key => $msg) {
@@ -148,8 +152,8 @@
             $convToAnswer = getMsgReceived($account['ID'], null, null, null, null, null, false, false);
             if(is_array($convToAnswer) || is_object($convToAnswer)){
                 foreach ($convToAnswer as $key => $value) {
+                    if(checkBotDetected()){goto BotDetected;}
                     $conv = getConversation($value['conv_id']);
-                if($value['conv_id'] == '6318828055766855680'){ // !!!!!! ME WITH KARINA
                     $last = end($conv);
                     if($last['by_bot']){    // should not append but still...
                         setRead($last['conv_id']);
@@ -174,7 +178,6 @@
                         }
                         setWatsonTry($last['msg_id']);
                     }
-                }
                 }
             }
 
