@@ -61,7 +61,7 @@
                     setAction('The bot is doing a search with this key word: <b>'.$key_word.'</b> (page '.$page.').', $account['ID']);
                     do_sleep();
         	    	// sending connnect request if not already sent
-                    if(count($result)==0 && !checkBotDetected()){  // make difference between a search with no result and a search when disconnected
+                    if($page>100){  // make difference between a search with no result and a search when disconnected
                         $page = 1;  //reinit;
                         $sendConnect = false;
                         setKeyWordDone($key_word_id);
@@ -91,7 +91,7 @@
             }
 
             if(checkBotDetected()){goto BotDetected;}
-            
+/*         
     	    // NEW CONNECTIONS
             //check and save new connections  
             setAction('The bot is saving all users who accepted the connection.', $account['ID']);
@@ -130,7 +130,7 @@
     		}
 
             if(checkBotDetected()){goto BotDetected;}
-
+*/
             // CHECK UNREAD CONVERSATION in LinkedIn
             $unreadConv = $li->getUnreadConversations();
             setAction('The bot is checking new unread conversations.', $account['ID']);
@@ -145,7 +145,7 @@
                 }
                 do_sleep();
             }
-
+/*
             if(checkBotDetected()){goto BotDetected;}
 
             // all unread conversation in database watson didn't try to answer yet
@@ -180,7 +180,7 @@
                     }
                 }
             }
-
+*/
             BotDetected:    // goto botDetected and start again the loop
             if($li->getBotDetected()){   // cookie not good!
                 setIsDisconnect(true, $account['ID']);
@@ -217,8 +217,8 @@
         if($time != null){
             sleep($time);
         }else{
-            $max_time_sleep = 120; //seconds
-            sleep(rand(60, $max_time_sleep));
+            $max_time_sleep = 200; //seconds
+            sleep(rand(100, $max_time_sleep));
         }
     }
 
