@@ -91,7 +91,7 @@
             }
 
             if(checkBotDetected()){goto BotDetected;}
-/*         
+         
     	    // NEW CONNECTIONS
             //check and save new connections  
             setAction('The bot is saving all users who accepted the connection.', $account['ID']);
@@ -130,7 +130,7 @@
     		}
 
             if(checkBotDetected()){goto BotDetected;}
-*/
+
             // CHECK UNREAD CONVERSATION in LinkedIn
             $unreadConv = $li->getUnreadConversations();
             setAction('The bot is checking new unread conversations.', $account['ID']);
