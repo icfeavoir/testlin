@@ -76,6 +76,15 @@
     	$json['showMsg'] = false;
     	$json['msgs'] = getConversation($_POST['conv']);
 	}
+	else if($_POST['action'] == 'checkConvAnswered'){
+		$json['showMsg'] = false;
+		$li = new Linkedin($account);
+		$conv = $li->getAllMsg($_POST['conv']);
+		// we save msgs just in case
+		foreach ($conv as $msg) {
+			$li->saveMsg($msg);
+		}
+	}
 	//USER INFOS
 	else if($_POST['action'] == 'getUserInformations'){
 		$json['showMsg'] = false;

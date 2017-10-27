@@ -112,7 +112,7 @@
     		foreach ($newConnections as $key => $profile_id) {
                 if(checkBotDetected()){goto BotDetected;}
                 // msg to this user with Karina or another account or this account in human way ?
-                if(count(directQuery('SELECT * FROM old_msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT * FROM msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0 || $li->conversationExists()){
+                if(count(directQuery('SELECT * FROM old_msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT * FROM msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0 || $li->conversationExists($profile_id)){
                     continue;
                 }
 

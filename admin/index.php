@@ -200,6 +200,10 @@ $(document).ready(function(){
 
 
 	function getMsgConversation(conv_id){
+		//first we check if the conversation hasn't be answered in a human way
+		post({'action': 'checkConvAnswered', 'conv': conv_id}, selectedAccount, function(resp){
+			
+		});
 		post({'action': 'getMsgConv', 'conv': conv_id}, selectedAccount, function(resp){
 			var msgs = resp.msgs;
 			// get user informations (name & jobs)
