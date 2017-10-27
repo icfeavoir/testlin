@@ -200,7 +200,6 @@ $(document).ready(function(){
 
 
 	function getMsgConversation(conv_id){
-		conv_id = '6326694911420698624';
 		// we first check if answere human way
 		post({'action': 'checkConvAnswered', 'conv': conv_id}, selectedAccount, function(noResp){
 			post({'action': 'getMsgConv', 'conv': conv_id}, selectedAccount, function(resp){
