@@ -200,41 +200,42 @@ $(document).ready(function(){
 
 
 	function getMsgConversation(conv_id){
-		//first we check if the conversation hasn't be answered in a human way
-		post({'action': 'checkConvAnswered', 'conv': conv_id}, selectedAccount, function(resp){
-			
-		});
-		post({'action': 'getMsgConv', 'conv': conv_id}, selectedAccount, function(resp){
-			var msgs = resp.msgs;
-			// get user informations (name & jobs)
-			post({'action': 'getUserInformations', 'profile_id': msgs[0].profile_id}, selectedAccount, function(resp){
-				var userName = resp.data.firstName+' '+resp.data.lastName;
-				$('#conv-user-name').text(userName);
-				$('#conv-user-job').text(resp.data.job);
-				$('a.link-profile').prop('href', 'https://www.linkedin.com/in/'+msgs[0].profile_id+'/');
+		conv_id = '6326694911420698624';
+		// we first check if answere human way
+		post({'action': 'checkConvAnswered', 'conv': conv_id}, selectedAccount, function(noResp){
+			post({'action': 'getMsgConv', 'conv': conv_id}, selectedAccount, function(resp){
+				var msgs = resp.msgs;
+				// get user informations (name & jobs)
+				post({'action': 'getUserInformations', 'profile_id': msgs[0].profile_id}, selectedAccount, function(resp){
+					var userName = resp.data.firstName+' '+resp.data.lastName;
+					$('#conv-user-name').text(userName);
+					$('#conv-user-job').text(resp.data.job);
+					$('a.link-profile').prop('href', 'https://www.linkedin.com/in/'+msgs[0].profile_id+'/');
 
-				// then the conv
-				$('.conversation .conv-msg').html('');
-				if(msgs[msgs.length-1].msg == '' && (msgs.length>1 && msgs[msgs.length-2] == '' && msgs[msgs.length-2].by != 'bot')){	// not a msg (user just accepted you on LinkedIn, but not a msg)
-					getUnreadConv();
-					post({'action': 'markRead', 'conv': conv_id},  selectedAccount);
-				}else{
-					$.each(msgs, function(index, val){
-						if(val.msg != '' && val.msg != null){
-							var whoSend = val.by_bot==1?'bot':userName;
-							$('.conversation .conv-msg').append(
-								'<div class="convMsg '+whoSend+'"><p class="date">'+whoSend+' - '+val.date+'</p><p class="text">'+(val.msg).replace(/\\n/g, "<br/>")+'</p></div>'
-							);
-						}
-					});
-					// scroll to bottom
-					$(".conv-msg").animate({ scrollTop: $('.conv-msg')[0].scrollHeight }, "slow");
-					// saving conv_id for answer
-					$('#send-msg').attr('conv-id', ''+conv_id);
-					$('#send-msg').attr('profile-id', ''+msgs[0].profile_id);
-					// mark as read btn
-					$('#mark-read').attr('conv-id', ''+conv_id);
-				}
+					// then the conv
+					$('.conversation .conv-msg').html('');
+					if((msgs[msgs.length-1].msg == '' && (msgs.length>1 && msgs[msgs.length-2] == '' && msgs[msgs.length-2].by_bot != true)) || msgs[msgs.length-1].by_bot == true){	// not a msg (user just accepted you on LinkedIn, but not a msg) OR last msg by bot (probably human way)
+						post({'action': 'markRead', 'conv': conv_id},  selectedAccount);
+						showBar(false, "Oups! This message was answered. I'm saving it and choosing another conversation!");
+						// getUnreadConv();
+					}else{
+						$.each(msgs, function(index, val){
+							if(val.msg != '' && val.msg != null){
+								var whoSend = val.by_bot==1?'bot':userName;
+								$('.conversation .conv-msg').append(
+									'<div class="convMsg '+whoSend+'"><p class="date">'+whoSend+' - '+val.date+'</p><p class="text">'+(val.msg).replace(/\\n/g, "<br/>")+'</p></div>'
+								);
+							}
+						});
+						// scroll to bottom
+						$(".conv-msg").animate({ scrollTop: $('.conv-msg')[0].scrollHeight }, "slow");
+						// saving conv_id for answer
+						$('#send-msg').attr('conv-id', ''+conv_id);
+						$('#send-msg').attr('profile-id', ''+msgs[0].profile_id);
+						// mark as read btn
+						$('#mark-read').attr('conv-id', ''+conv_id);
+					}
+				});
 			});
 		});
 	}
@@ -248,7 +249,7 @@ $(document).ready(function(){
 			$('#nbUnreadConv').text(nbUnreadConv);
 			if(nbUnreadConv != 0){
 				var conv = unreadConv[Math.floor(Math.random()*nbUnreadConv)].conv_id;
-				getMsgConversation(conv); // sleep
+				getMsgConversation(conv);
 				$('#send-msg, #mark-read').prop('disabled', false);
 			}else{
 				$('.conversation .conv-msg, #conv-user-name, #conv-user-job').html('No conversation');

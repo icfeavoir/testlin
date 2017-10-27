@@ -305,7 +305,7 @@
 				// already saved
 				if(getMsgSent($this->_accountID, null, null, $msg['msg_id']) != null)
 					return;
-				// not template or Watson if we just discover this msg sent by the bot (old msg)
+				// not template or Watson if we just discover this msg sent by the bot (old msg or human msg)
 				saveMsgSent($msg['profile_id'], $msg['msg'], $msg['conv_id'], $msg['msg_id'], $msg['date'], 0, 0, null, $this->_accountID);
 			}else{
 				$this->receiveMsg($msg);

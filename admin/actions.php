@@ -80,10 +80,11 @@
 		$json['showMsg'] = false;
 		$li = new Linkedin($account);
 		$conv = $li->getAllMsg($_POST['conv']);
-		// we save msgs just in case
+		// we save msgs just in case we answered it with human way
 		foreach ($conv as $msg) {
 			$li->saveMsg($msg);
 		}
+		sleep(1);
 	}
 	//USER INFOS
 	else if($_POST['action'] == 'getUserInformations'){
