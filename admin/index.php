@@ -217,7 +217,7 @@ $(document).ready(function(){
 					if((msgs[msgs.length-1].msg == '' && (msgs.length>1 && msgs[msgs.length-2] == '' && msgs[msgs.length-2].by_bot != true)) || msgs[msgs.length-1].by_bot == true){	// not a msg (user just accepted you on LinkedIn, but not a msg) OR last msg by bot (probably human way)
 						post({'action': 'markRead', 'conv': conv_id},  selectedAccount);
 						showBar(false, "Oups! This message was answered. I'm saving it and choosing another conversation!");
-						// getUnreadConv();
+						getUnreadConv();
 					}else{
 						$.each(msgs, function(index, val){
 							if(val.msg != '' && val.msg != null){
