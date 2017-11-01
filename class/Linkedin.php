@@ -321,7 +321,7 @@
 			setRead($conv_id);
 		}
 
-		public function checkNewConnections(){
+		public function checkNewConnections($sleep = 10){
 			// check all connections until 25 null (so we came back at the beginnig) or the last saved connection
 			$headers = $this->getHeaders();
 			$run = true;
