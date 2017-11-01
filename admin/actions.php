@@ -114,6 +114,10 @@
 		$json['showMsg'] = false;
 		$json['templates'] = getAllTemplates(null, $account);
 	}
+	else if($_POST['action'] == 'getActiveTemplates'){
+		$json['showMsg'] = false;
+		$json['templates'] = getAllTemplates(true, $account);
+	}
 	else if($_POST['action'] == 'changeTemplateState'){
 		$state = $_POST['state'] == 'true';
 		$json['msg'] = 'The template '.$_POST['id'].' is now '.($state?'active':'inactive');
