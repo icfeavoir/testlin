@@ -61,7 +61,7 @@ $(document).ready(function(){
 	}
 
 	$('#sendTemplate').click(function(){
-		post({'action':'getAllTemplates'}, function(resp){
+		post({'action':'getAllTemplates'}, 1, function(resp){
 			var templates = resp.templates;
 			var r = Math.floor((Math.random() * (templates.length)));
 			newMsg('bot', templates[r]['msg']);

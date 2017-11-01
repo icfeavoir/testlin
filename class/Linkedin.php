@@ -287,7 +287,7 @@
 				// previous msg from the bot
 				$prev = getLastMsg($msg['conv_id']);
 				$template = $prev['template_msg']??0;
-				$watson = $prev['watson']??0;
+				$watson = $prev['watson_context']??0;
 				saveMsgReceived($msg['profile_id'], $msg['msg'], $msg['conv_id'], $msg['msg_id'], $msg['date'], $template, $watson, $this->_accountID);
 			}
 		}
