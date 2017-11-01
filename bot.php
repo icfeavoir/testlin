@@ -149,9 +149,13 @@
             if(checkBotDetected()){goto BotDetected;}
 
             // all unread conversation in database watson didn't try to answer yet
+            $answerCount = 0;
             $convToAnswer = getMsgReceived($account['ID'], null, null, null, null, null, false, false);
             if(is_array($convToAnswer) || is_object($convToAnswer)){
                 foreach ($convToAnswer as $key => $value) {
+                    if($answerCount > 10){
+                        break;
+                    }
                     if(checkBotDetected()){goto BotDetected;}
                     $checkConv = $li->getAllMsg($value['conv_id']); // checking if human answers
                     foreach ($checkConv as $msg) {
@@ -160,23 +164,17 @@
                     do_sleep();
                     $conv = getConversation($value['conv_id']);
                     $last = end($conv);
-                    if($last['by_bot']){    // should not append but still...
+                    if($last['by_bot']){    // should not append but still... (maybe with human msgs)
                         setRead($last['conv_id']);
-                    }else{
+                    }else if($last['watson_context'] != null){  // only answer if watson context! 
                         setAction('The bot is trying to answer a message with Watson.', $account['ID']);
-                        $context = unserialize(getLastContext($last['conv_id']));   // HERE CHECK IF CONTEXT EXITS --> BOT CONVERSATION
+                        $context = unserialize($last['watson_context']);
                         $watsonAnswer = $watson->chat($last['msg'], $context);
                         if(isset($watsonAnswer->output->text[0])){    // watson can answer
                             $newContext = $watsonAnswer->context;
-                            if($context == null){
-                                // previous context null -> first msg
-                                $userInfos = $li->getUserInformations($last['profile_id']);
-                                do_sleep();
-                                $newContext->firstName = $userInfos['firstName'];
-                                $newContext->lastName = $userInfos['lastName'];
-                                $newContext->job = $userInfos['job'];
-                            }
                             $li->sendMsg($last['profile_id'], $watsonAnswer->output->text[0], true, serialize($newContext));
+                            setAction('The bot answered a message with Watson.', $account['ID']);
+                            $answerCount++;
                             do_sleep();
                         }else{  // we put the context to "anything else" to avoid new bot msg for this user
                             setContext($last['msg_id'], serialize($watson->chat('anything_else')->context));

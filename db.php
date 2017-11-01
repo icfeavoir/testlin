@@ -239,11 +239,11 @@
 	* @param int $template (optional) The ID of the msg template used
 	*
 	*/
-	function saveMsgReceived($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson_msg=false, $account){
+	function saveMsgReceived($profile_id, $msg, $conv, $msg_id, $date, $template=0, $watson_context=null, $account){
 		global $db;
 		$date = gettype($date)=='string'?$date:date('Y-m-d G:i:s', $date);
-		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson_msg, date, accountID) VALUES (0, :profile_id, :conv, :msg_id, :template, :msg, :watson_msg, :date, :account)');
-		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson_msg'=>$watson_msg, ':date'=>$date, ':account'=>$account));
+		$statement = $db->prepare('INSERT INTO msg_conversation (by_bot, profile_id, conv_id, msg_id, template_msg, msg, watson_context, date, accountID) VALUES (0, :profile_id, :conv, :msg_id, :template, :msg, :watson_context, :date, :account)');
+		$statement->execute(array(':profile_id' => $profile_id, ':conv' => $conv, ':msg_id' => $msg_id, ':template'=>$template, ':msg' => $msg, ':watson_context'=>$watson_context, ':date'=>$date, ':account'=>$account));
 	}
 
 	/**
