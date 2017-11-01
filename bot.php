@@ -65,7 +65,6 @@
                         $page = 1;  //reinit;
                         $sendConnect = false;
                         setKeyWordDone($key_word_id);
-                        $key_words_count++; // new key word
                     }
         	    	foreach ($result as $profile_id) {
                         if(checkBotDetected()){goto BotDetected;}
@@ -146,7 +145,7 @@
                 }
                 do_sleep();
             }
-/*
+
             if(checkBotDetected()){goto BotDetected;}
 
             // all unread conversation in database watson didn't try to answer yet
@@ -154,13 +153,18 @@
             if(is_array($convToAnswer) || is_object($convToAnswer)){
                 foreach ($convToAnswer as $key => $value) {
                     if(checkBotDetected()){goto BotDetected;}
+                    $checkConv = $li->getAllMsg($value['conv_id']); // checking if human answers
+                    foreach ($checkConv as $msg) {
+                        $li->saveMsg($msg);
+                    }
+                    do_sleep();
                     $conv = getConversation($value['conv_id']);
                     $last = end($conv);
                     if($last['by_bot']){    // should not append but still...
                         setRead($last['conv_id']);
                     }else{
                         setAction('The bot is trying to answer a message with Watson.', $account['ID']);
-                        $context = unserialize(getLastContext($last['conv_id']));
+                        $context = unserialize(getLastContext($last['conv_id']));   // HERE CHECK IF CONTEXT EXITS --> BOT CONVERSATION
                         $watsonAnswer = $watson->chat($last['msg'], $context);
                         if(isset($watsonAnswer->output->text[0])){    // watson can answer
                             $newContext = $watsonAnswer->context;
@@ -181,7 +185,7 @@
                     }
                 }
             }
-*/
+
             BotDetected:    // goto botDetected and start again the loop
             if($li->getBotDetected()){   // cookie not good!
                 setIsDisconnect(true, $account['ID']);

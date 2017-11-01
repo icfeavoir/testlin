@@ -10,4 +10,4 @@
         array_push($list, '(nohup php bot.php '.$value['ID'].' &)');
     }
     $exec = implode(' && ', $list);
-    exec('cd && cd '.FULL_PATH.' && '.$exec);
+    exec('cd && cd '.FULL_PATH.' && '.$exec.' &> log.txt');
