@@ -158,7 +158,8 @@
 	else if($_POST['action'] == 'changeAccountActive'){
 		$state = $_POST['state'] == 'true';
 		changeAccountActive($_POST['id'], $state);
-		$json['msg'] = 'This account is now '.($state?'':'in').'active'.$_POST['id'];
+		setAction($state ? 'The bot will reconnect soon...' : 'This account is inactive', $account);
+		$json['msg'] = 'This account is now '.($state?'':'in').'active: '.$_POST['id'];
 	}
 	else if($_POST['action'] == 'changeChatActive'){
 		$state = $_POST['state'] == 'true';
