@@ -65,7 +65,7 @@
 			</div>
 			<div class="col-lg-6 col-padding-both">
 				<div class="column column-2 conversation">
-					<h6 class="title"><span id="nbUnreadConv"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i></span> unread messages - <a id="random-conv">Another random unread conversation!</a></h6>
+					<h6 class="title"><span id="nbUnreadConv"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i></span> unread messages Watson couldn't answer<br/><a id="random-conv">Another random unread conversation!</a></h6>
 					<div class="content">
 						<div class="infos-user alert-info">
 							<a class="link-profile" target="_blank" href="#">
