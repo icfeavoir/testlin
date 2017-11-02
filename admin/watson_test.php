@@ -20,7 +20,7 @@
 			<h2>WATSON TEST</h2>
 			<a href="index.php"><button class="btn btn-sm btn-primary"><i class="fa fa-arrow-left"></i> Back</button></a>
 			<br><br>
-			<p class="alert alert-info">In this interface, you are a LinkedIn user named <b>Gustaf Hector</b></p>
+			<p class="alert alert-info infoWatson">In this interface, you are a LinkedIn user named <b>Gustaf Hector</b>.</p>
 			<div class="alert alert-info">
 				<div class="conv-msg"></div>
 			</div>
@@ -39,6 +39,19 @@
 
 <script>
 $(document).ready(function(){
+	var selectedAccount = {};
+	$.ajax({
+		type: 'POST',
+		url: 'actions.php',
+		data: {'action': 'getAllAccounts'},
+		success: function(resp){
+			selectedAccount = resp.value[0];
+			$('.infoWatson').append(" The bot is using this account: "+selectedAccount.email);
+		},
+		dataType: "json",
+		async:false
+	});
+
 	function genContext(action, msg){
 		var resp = '';
 		if(msg === undefined){
@@ -66,7 +79,7 @@ $(document).ready(function(){
 			var r = Math.floor((Math.random() * (templates.length)));
 			newMsg('bot', templates[r]['msg']);
 		});
-		genContext('init');
+		genContext('init', selectedAccount.youpicURL);
 		$('#answer-conv-msg').focus();
 	});
 

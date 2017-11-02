@@ -278,17 +278,17 @@
 	}
 
 	/**
-	* Change the watson_try value (if true and msg not read => watson can't answer)
+	* Change the watson_try value (if true and msg not read => watson can't answer) for the conversation!
 	*
-	* @param string $msg_id The id of the message
+	* @param string $conv_id The id of the conversation
 	*
 	* @param bool $read (optional) True for try
 	*
 	*/
-	function setWatsonTry($msg_id, $try=true){
+	function setWatsonTry($conv_id, $try=true){
 		global $db;
-		$statement = $db->prepare('UPDATE msg_conversation SET watson_try=:try WHERE msg_id=:msg_id');
-		$statement->execute(array(':try'=>$try, ':msg_id'=>$msg_id));
+		$statement = $db->prepare('UPDATE msg_conversation SET watson_try=:try WHERE conv_id=:conv_id');
+		$statement->execute(array(':try'=>$try, ':conv_id'=>$conv_id));
 	}
 
 	/**

@@ -18,6 +18,7 @@
 		$defaultContext->firstName = 'Gustaf';
 		$defaultContext->lastName = 'Hector';
 		$defaultContext->job = 'YouPic';
+		$defaultContext->myLink = $_POST['msg'];
 		file_put_contents('context', serialize($defaultContext));
 	}else if($action == 'getResponse'){
 		$context = unserialize(file_get_contents('context'));

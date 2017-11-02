@@ -185,7 +185,7 @@
                         }else{  // we put the context to "anything else" to avoid new bot msg for this user
                             setContext($last['msg_id'], serialize($watson->chat('anything_else')->context));
                         }
-                        setWatsonTry($last['msg_id']);
+                        setWatsonTry($last['conv_id']);
                     }
                 }
             }
