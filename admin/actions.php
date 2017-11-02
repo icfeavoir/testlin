@@ -69,7 +69,7 @@
 	else if($_POST['action'] == 'unreadConv'){
 		$json['showMsg'] = false;
 		// all conversations not read and where watson try but couldn't answer
-		$json['unreadConv'] = getMsgReceived($account, null, null, null, null, null, null, false);
+		$json['unreadConv'] = getMsgReceived($account, null, null, null, null, null, true, false);
 	}
 	// RANDOM CONVERSATION
 	else if($_POST['action'] == 'getMsgConv'){

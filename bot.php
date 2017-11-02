@@ -158,7 +158,7 @@
             $convToAnswer = getMsgReceived($account['ID'], null, null, null, null, null, false, false);
             if(is_array($convToAnswer) || is_object($convToAnswer)){
                 foreach ($convToAnswer as $key => $value) {
-                    if($answerCount > 10){
+                    if($answerCount > 20){
                         break;
                     }
                     if(checkBotDetected()){goto BotDetected;}
