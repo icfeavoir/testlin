@@ -34,7 +34,7 @@
 		</div>
 
 		<container class="accounts">
-			<button class="btn btn-md btn-primary open-modal" id="accounts">Add an account</button>
+			<button class="btn btn-md btn-primary open-modal" id="accounts">Account Manager</button>
 			Selected Account : <span class="listAccounts"></span>
 		</container>
 

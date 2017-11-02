@@ -20,7 +20,7 @@
 
     while(true){
         //bot on && account active && not night !
-        if(getIsOn() && getAccount($account['ID'])['active'] && intval(date('H', time())) >= 8 && intval(date('H', time())) < 20){ // good hour :)
+        if(getIsOn() && $account['active'] && intval(date('H', time())) >= 8 && intval(date('H', time())) < 20){ // good hour :)
             
             // check if account has not been inactivated or deleted
             $account = getAccount($account['ID']);
@@ -208,7 +208,7 @@
 	    }else{
             if(!getIsOn()){
                 setAllAction('Please turn me on!');
-            }else if(getAccount($account['ID'])['active']){
+            }else if(!$account['active']){
                 setAction('This account is not active', $acount['ID']);
             }else{
                 setAction('The bot is sleeping until 8 AM', $account['ID']);

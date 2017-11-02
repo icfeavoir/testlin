@@ -23,6 +23,7 @@
 				<th>ID</th>
 				<th>Email</th>
 				<th>Password</th>
+				<th>Link</th>
 				<th>Delete</th>
 			</tr>
 		</table>
@@ -40,7 +41,7 @@ $(document).ready(function(){
 			var newId = -1;
 			var email = $('#email').val();
 			var password = $('#password').val();
-			var link = $('#link').val();
+			var link = $('#link').val() || "";
 			post({'action': 'saveNewAccount', 'email': email, 'password': password, 'link': link}, selectedAccount);
 			location.reload();	
 		}
@@ -48,7 +49,7 @@ $(document).ready(function(){
 	// all accounts
 	post({'action':'getAllAccounts'}, selectedAccount, function(resp){
 		$.each(resp.value, function(key, value){
-			$('.account-manager').append('<tr id="'+value.ID+'"><td><div class="checkbox"><label><input type="checkbox" class="active" value="'+value.ID+'" '+(value.active==1?'checked':'')+'></label></div></td><td><div class="checkbox"><label><input type="checkbox" class="chat" value="'+value.ID+'" '+(value.chatWithAll==1?'checked':'')+'></label></div></td><td>'+value.ID+'</td><td>'+value.email+'</td><td>'+value.password+'</td><td><i class="fa fa-trash delete"></i></td></tr>');
+			$('.account-manager').append('<tr id="'+value.ID+'"><td><div class="checkbox"><label><input type="checkbox" class="active" value="'+value.ID+'" '+(value.active==1?'checked':'')+'></label></div></td><td><div class="checkbox"><label><input type="checkbox" class="chat" value="'+value.ID+'" '+(value.chatWithAll==1?'checked':'')+'></label></div></td><td>'+value.ID+'</td><td>'+value.email+'</td><td>'+value.password+'</td><td>'+value.youpicURL+'</td><td><i class="fa fa-trash delete"></i></td></tr>');
 			// delete
 			$('.account-manager tr[id="'+value.ID+'"] i.delete').click(function(){
 				var clicked = $(this);
