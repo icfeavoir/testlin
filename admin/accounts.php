@@ -18,6 +18,7 @@
 		<table class="table table-striped table-hover account-manager">
 			<tr>
 				<th>Active</th>
+				<th>Chat with all</th>
 				<th>ID</th>
 				<th>Email</th>
 				<th>Password</th>
@@ -45,7 +46,7 @@ $(document).ready(function(){
 	// all accounts
 	post({'action':'getAllAccounts'}, selectedAccount, function(resp){
 		$.each(resp.value, function(key, value){
-			$('.account-manager').append('<tr id="'+value.ID+'"><td><div class="checkbox"><label><input type="checkbox" class="active" value="'+value.ID+'" '+(value.active==1?'checked':'')+'></label></div></td><td>'+value.ID+'</td><td>'+value.email+'</td><td>'+value.password+'</td><td><i class="fa fa-trash delete"></i></td></tr>');
+			$('.account-manager').append('<tr id="'+value.ID+'"><td><div class="checkbox"><label><input type="checkbox" class="active" value="'+value.ID+'" '+(value.active==1?'checked':'')+'></label></div></td><td><div class="checkbox"><label><input type="checkbox" class="chat" value="'+value.ID+'" '+(value.chatWithAll==1?'checked':'')+'></label></div></td><td>'+value.ID+'</td><td>'+value.email+'</td><td>'+value.password+'</td><td><i class="fa fa-trash delete"></i></td></tr>');
 			// delete
 			$('.account-manager tr[id="'+value.ID+'"] i.delete').click(function(){
 				var clicked = $(this);
@@ -72,6 +73,10 @@ $(document).ready(function(){
 			//change active
 			$('.account-manager tr[id="'+value.ID+'"] .active').click(function(){
 				post({'action': 'changeAccountActive', 'state': $(this).prop('checked'), 'id':$(this).val()}, selectedAccount);
+			});
+			//change what with all
+			$('.account-manager tr[id="'+value.ID+'"] .chat').click(function(){
+				post({'action': 'changeChatActive', 'state': $(this).prop('checked'), 'id':$(this).val()}, selectedAccount);
 			});
 		});
 	});

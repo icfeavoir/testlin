@@ -1,0 +1,1 @@
+ALTER TABLE accounts ADD chatWithAll tinyint(1) NOT NULL DEFAULT 1; 

@@ -110,8 +110,13 @@
             //send default msg to new connections
     		foreach ($newConnections as $key => $profile_id) {
                 if(checkBotDetected()){goto BotDetected;}
-                // msg to this user with Karina or another account or this account in human way ?
+                // msg to this user with Karina or another account or this account in human way
                 if(count(directQuery('SELECT * FROM old_msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0 || count(directQuery('SELECT * FROM msg_conversation WHERE profile_id="'.$profile_id.'"')) != 0 || $li->conversationExists($profile_id)){
+                    continue;
+                }
+
+                // if chat with all users is disabled, we chack if the bot sent a connection request to this user 
+                if(!$account['chatWithAll'] && isConnectSent($profile_id, $account['ID']) == false){
                     continue;
                 }
 
@@ -220,8 +225,8 @@
         if($time != null){
             sleep($time);
         }else{
-            $max_time_sleep = 200; //seconds
-            sleep(rand(100, $max_time_sleep));
+            $max_time_sleep = 120; //seconds
+            sleep(rand(60, $max_time_sleep));
         }
     }
 

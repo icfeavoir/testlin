@@ -160,6 +160,11 @@
 		changeAccountActive($_POST['id'], $state);
 		$json['msg'] = 'This account is now '.($state?'':'in').'active'.$_POST['id'];
 	}
+	else if($_POST['action'] == 'changeChatActive'){
+		$state = $_POST['state'] == 'true';
+		changeChatActive($_POST['id'], $state);
+		$json['msg'] = $state ? 'This account will chat with all users.' : 'This account will only chat with users related to the bot.';
+	}
 	else if($_POST['action'] == 'deleteAccount'){
 		deleteAccount($_POST['id']);
 		$json['msg'] = 'Account deleted';

@@ -544,6 +544,12 @@
 		$statement->execute(array(':id'=>$id, ':active'=>$active?1:0));
 	}
 
+	function changeChatActive($id, $active){
+		global $db;
+		$statement = $db->prepare('UPDATE accounts SET chatWithAll=:active WHERE ID=:id');
+		$statement->execute(array(':id'=>$id, ':active'=>$active?1:0));
+	}
+
 	function deleteAccount($id){
 		global $db;
 		$statement = $db->prepare('DELETE FROM accounts WHERE ID=:id');
