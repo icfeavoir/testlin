@@ -12,7 +12,7 @@
 		<div>
 			<input class="form-control" type="text" placeholder="Email" id="email" /><br/>
 			<input class="form-control" type="text" placeholder="Password" id="password" /><br/>
-			<input class="form-control" type="text" placeholder="Link to profile" id="link" /><br/>
+			<input class="form-control" type="text" placeholder="Link to YouPic profile (without any '/' or 'https://...', only the profile name!)" id="link" /><br/>
 			<button class="btn btn-md btn-primary" id="newAccount">Save account</button>
 		</div>
 		<br />
