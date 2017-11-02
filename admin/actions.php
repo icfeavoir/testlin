@@ -152,7 +152,7 @@
 		$json['value'] = getAllAccounts();
 	}
 	else if($_POST['action'] == 'saveNewAccount'){
-		$json['newId'] = saveNewAccount($_POST['email'], $_POST['password']);
+		$json['newId'] = saveNewAccount($_POST['email'], $_POST['password'], $_POST['link']);
 		$json['msg'] = 'New account saved';
 	}
 	else if($_POST['action'] == 'changeAccountActive'){

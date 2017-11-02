@@ -12,6 +12,7 @@
 		<div>
 			<input class="form-control" type="text" placeholder="Email" id="email" /><br/>
 			<input class="form-control" type="text" placeholder="Password" id="password" /><br/>
+			<input class="form-control" type="text" placeholder="Link to profile" id="link" /><br/>
 			<button class="btn btn-md btn-primary" id="newAccount">Save account</button>
 		</div>
 		<br />
@@ -39,7 +40,8 @@ $(document).ready(function(){
 			var newId = -1;
 			var email = $('#email').val();
 			var password = $('#password').val();
-			post({'action': 'saveNewAccount', 'email': email, 'password': password}, selectedAccount);
+			var link = $('#link').val();
+			post({'action': 'saveNewAccount', 'email': email, 'password': password, 'link': link}, selectedAccount);
 			location.reload();	
 		}
 	});

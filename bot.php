@@ -126,6 +126,7 @@
                 $defaultContext->firstName = $userInfos['firstName'];
                 $defaultContext->lastName = $userInfos['lastName'];
                 $defaultContext->job = $userInfos['job'];
+                $defaultContext->myLink = $account['youpicURL'];
     			// send msg to new connections
                 $templates = getAllTemplates(true, $account['ID']);
                 $selectedTemplate = rand(0, count($templates)-1);

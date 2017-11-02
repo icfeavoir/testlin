@@ -503,10 +503,10 @@
 
 	// ACCOUNTS
 
-	function saveNewAccount($email, $password){
+	function saveNewAccount($email, $password, $link = ""){
 		global $db;
-		$statement = $db->prepare('INSERT INTO accounts (email, password) VALUES (:email, :password)');
-		$statement->execute(array(':email'=>$email, ':password'=>$password));
+		$statement = $db->prepare('INSERT INTO accounts (email, password, youpicURL) VALUES (:email, :password, :link)');
+		$statement->execute(array(':email'=>$email, ':password'=>$password, ':link'=>$link));
 		$id = $db->lastInsertId();
 		$statement = $db->prepare('INSERT INTO bot_action (action, accountID) VALUES (:action, :accountID)');
 		$statement->execute(array(':action'=>'Not connected yet', ':accountID'=>$id));
