@@ -222,7 +222,7 @@ $(document).ready(function(){
 							if(val.msg != '' && val.msg != null){
 								var whoSend = val.by_bot==1?'bot':userName;
 								$('.conversation .conv-msg').append(
-									'<div class="convMsg '+whoSend+'"><p class="date">'+whoSend+' - '+val.date+'</p><p class="text">'+(val.msg).replace(/\\n/g, "<br/>")+'</p></div>'
+									'<div class="convMsg '+whoSend+'"><p class="date">'+whoSend+(whoSend=='bot'&&!val.watson_context?' (human way)':'')+' - '+val.date+'</p><p class="text">'+(val.msg).replace(/\\n/g, "<br/>")+'</p></div>'
 								);
 							}
 						});
