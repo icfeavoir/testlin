@@ -285,7 +285,7 @@ $(document).ready(function(){
 
 	$('#send-msg').click(function(){
 		if($('#answer-conv-msg' != '')){
-			post({'action': 'sendMsg', 'profile_id': $(this).attr('profile-id'), 'msg': $('#answer-conv-msg').val()},  selectedAccount);
+			post({'action': 'sendMsg', 'profile_id': $(this).attr('profile-id'), 'msg': $('#answer-conv-msg').val()}, selectedAccount);
 			$('.conversation .conv-msg').append(
 				'<div class="convMsg bot"><p class="date">bot - just now</p><p class="text">'+$('#answer-conv-msg').val()+'</p></div>'
 			);

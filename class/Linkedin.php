@@ -490,7 +490,7 @@
 			array_push($headers, 'x-restli-protocol-version: 2.0.0');
 			$conv = $this->page('voyager/api/messaging/conversations?keyVersion=control&q=participants&recipients=List('.$user_id.')', [], $headers);
 			$conv = json_decode('{'.$this->fetch_value($conv, '{'));
-			return $conv->elements != array();
+			return !($conv == null || $conv->elements == array() || !isset($conv->elements[0]->totalEventCount) || $conv->elements[0]->totalEventCount <= 1);
 		}
 
 		public function getBotDetected(){
