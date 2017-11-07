@@ -61,8 +61,7 @@
                     setAction('The bot is doing a search with this key word: <b>'.$key_word.'</b> (page '.$page.').', $account['ID']);
                     do_sleep();
         	    	// sending connnect request if not already sent
-                    if($page>100){  // make difference between a search with no result and a search when disconnected
-                        $page = 1;  //reinit;
+                    if($page>=100){  // make difference between a search with no result and a search when disconnected (not done yet)
                         $sendConnect = false;
                         setKeyWordDone($key_word_id);
                     }
