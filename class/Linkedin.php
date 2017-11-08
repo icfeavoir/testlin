@@ -248,10 +248,12 @@
 			
 			if(is_array($msg)){	// if send template, to user with the getTemplate($id) function
 				$template = $msg['ID'];
-				$msg = str_replace('<br />', '\n', $msg['msg']);
+				$msg = $msg['msg'];
+				// $msg = str_replace('<br />', '\n', $msg['msg']);
 			}else{
 				$template = 0;
 			}
+			$msg = str_replace(array("<br>", "<br/", "<br />"), '\n', $msg);
 
 			// we have to delete every slashes (/)
 			$profile_id = trim($profile_id, '/');

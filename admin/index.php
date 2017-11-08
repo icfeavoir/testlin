@@ -287,9 +287,10 @@ $(document).ready(function(){
 
 	$('#send-msg').click(function(){
 		if($('#answer-conv-msg' != '')){
-			post({'action': 'sendMsg', 'profile_id': $(this).attr('profile-id'), 'msg': $('#answer-conv-msg').val()}, selectedAccount);
+			var msg = $('#answer-conv-msg').val().replace(/(?:\r\n|\r|\n)/g, '<br/>');
+			post({'action': 'sendMsg', 'profile_id': $(this).attr('profile-id'), 'msg': msg}, selectedAccount);
 			$('.conversation .conv-msg').append(
-				'<div class="convMsg bot"><p class="date">bot - just now</p><p class="text">'+$('#answer-conv-msg').val()+'</p></div>'
+				'<div class="convMsg bot"><p class="date">bot - just now</p><p class="text">'+msg+'</p></div>'
 			);
 			$('#answer-conv-msg').val('');
 			// scroll to bottom
