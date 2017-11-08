@@ -60,7 +60,7 @@
 		        'source_app' => '',
 		        'tryCount' => '',
 		        'clickedSuggestion' => 'false',
-		        'session_key' => trim($this->_username),
+		        'session_key' => trim($this->_username), 
 		        'session_password' => trim($this->_password),
 		        'signin' => 'Sign In',
 		        'session_redirect' => '',

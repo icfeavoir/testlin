@@ -68,6 +68,7 @@
 					<h6 class="title"><span id="nbUnreadConv"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i></span> unread messages Watson couldn't answer<br/><a id="random-conv">Another random unread conversation!</a></h6>
 					<div class="content">
 						<div class="infos-user alert-info">
+							<p>Go to user profile: <b id="conv-user-id"></b></p>
 							<a class="link-profile" target="_blank" href="#">
 								<b id="conv-user-name"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i></b><br/>
 								<span id="conv-user-job"></span>
@@ -207,6 +208,7 @@ $(document).ready(function(){
 				// get user informations (name & jobs)
 				post({'action': 'getUserInformations', 'profile_id': msgs[0].profile_id}, selectedAccount, function(resp){
 					var userName = resp.data.firstName+' '+resp.data.lastName;
+					$('#conv-user-id').html("<a target='_blank' href='https://linkedin.com/in/"+msgs[0].profile_id+"'>GO</a>");
 					$('#conv-user-name').text(userName);
 					$('#conv-user-job').text(resp.data.job);
 					$('a.link-profile').prop('href', 'https://www.linkedin.com/in/'+msgs[0].profile_id+'/');
@@ -241,7 +243,7 @@ $(document).ready(function(){
 
 	function getUnreadConv(){
 		$('#nbUnreadConv, .conversation .conv-msg, #conv-user-name').html('<i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i>');
-		$('#conv-user-job').html('');
+		$('#conv-user-job, #conv-user-id').html('');
 		post({'action': 'unreadConv'}, selectedAccount, function(resp){
 			var unreadConv = resp.unreadConv;
 			var nbUnreadConv = resp.unreadConv == null?0:resp.unreadConv.length;
