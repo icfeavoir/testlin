@@ -33,8 +33,7 @@
 
             if($account['detected'] == 1){goto BotDetected;}
 
-            $li = new Linkedin($account['ID']);
-            // for each iteration, we close curl to save cookie and we re open it to know if the bot is detected.
+            $li = new Linkedin($account['ID']); // for each iteration, we close curl to save cookie and we re open it to know if the bot is detected.
             $li->close();
             $li = new Linkedin($account['ID']);
 
@@ -204,6 +203,9 @@
                     setIsDisconnect(false, $account['ID']);
                 }
             }
+
+            // reconnect so deletion of cookies;
+            unset(ROOTPATH.'/cookie_'.$account['ID'].'.txt');
 	    }else{
             if(!getIsOn()){
                 setAllAction('Please turn me on!');
