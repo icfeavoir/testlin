@@ -205,7 +205,7 @@
             }
 
             // reconnect so deletion of cookies;
-            unset(ROOTPATH.'/cookie_'.$account['ID'].'.txt');
+            unlink(ROOTPATH.'/cookie_'.$account['ID'].'.txt');
 	    }else{
             if(!getIsOn()){
                 setAllAction('Please turn me on!');
