@@ -28,6 +28,7 @@
 	else if($_POST['action'] == 'changeBotDisconnect'){
 		$json['showMsg'] = false;
 		setIsDisconnect($_POST['disconnect'], $account);
+		setAction('The bot will try to reconnect', $account);
 	}
 	// ON OFF
 	else if($_POST['action'] == 'isOn'){
@@ -37,9 +38,9 @@
 	else if($_POST['action'] == 'changeBotState'){
 		$json['msg'] = 'The bot is now '.($_POST['state']==1?'On':'Off');
 		if($_POST['state'])
-			setAction('The bot is starting...');
+			setAction('The bot is starting...', $account);
 		else
-			setAction('The bot is off.');
+			setAction('The bot is off.', $account);
 		setIsOn($_POST['state']?1:0);
 	}
 	// KEY WORDS
