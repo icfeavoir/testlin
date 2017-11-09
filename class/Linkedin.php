@@ -471,7 +471,7 @@
 					$job = $this->fetch_value($val, 'headline&quot;:&quot;', '&quot;');
 				}
 			}
-			return array('firstName'=>$firstName, 'lastName'=>$lastName, 'job'=>$job);
+			return array('firstName'=>ucfirst(strtolower($firstName)), 'lastName'=>$lastName, 'job'=>$job);
 		}
 
 		public function getIdByConversation($conv_id){
