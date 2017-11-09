@@ -65,7 +65,7 @@
 			</div>
 			<div class="col-lg-6 col-padding-both">
 				<div class="column column-2 conversation">
-					<h6 class="title"><span id="nbUnreadConv"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i></span> unread messages Watson couldn't answer<br/><a id="random-conv">Another random unread conversation!</a></h6>
+					<h6 class="title"><span id="nbUnreadConv"><i class="fa fa-circle-o-notch fa-spin" style="font-size:24px"></i></span> unread conversation(s) Watson couldn't answer<br/><a id="random-conv">Another random unread conversation!</a></h6>
 					<div class="content">
 						<div class="infos-user alert-info">
 							<p>Go to user profile: <b id="conv-user-id"></b></p>
@@ -247,7 +247,7 @@ $(document).ready(function(){
 		post({'action': 'unreadConv'}, selectedAccount, function(resp){
 			var unreadConv = resp.unreadConv;
 			var nbUnreadConv = resp.unreadConv == null?0:resp.unreadConv.length;
-			$('#nbUnreadConv').text(nbUnreadConv);
+			$('#nbUnreadConv').text(resp.nbUnreadJson);
 			if(nbUnreadConv != 0){
 				var conv = unreadConv[Math.floor(Math.random()*nbUnreadConv)].conv_id;
 				getMsgConversation(conv);
