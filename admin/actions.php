@@ -71,6 +71,7 @@
 		$json['showMsg'] = false;
 		// all conversations not read and where watson try but couldn't answer
 		$json['unreadConv'] = getMsgReceived($account, null, null, null, null, null, true, false);
+		$json['nbUnreadJson'] = directQuery('SELECT count(DISTINCT conv_id) as nb FROM msg_conversation WHERE is_read=false AND watson_try=true AND accountID='.$account)[0]['nb'];
 	}
 	// RANDOM CONVERSATION
 	else if($_POST['action'] == 'getMsgConv'){
