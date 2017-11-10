@@ -29,7 +29,7 @@
             }else if($account['active'] == false){
                 setAction('This account is not activated', $account['ID']);
                 goto BotDetected;
-            }        
+            }
 
             if($account['detected'] == 1){goto BotDetected;}
 
@@ -203,9 +203,6 @@
                     setIsDisconnect(false, $account['ID']);
                 }
             }
-
-            // reconnect so deletion of cookies;
-            unlink(ROOTPATH.'/cookie_'.$account['ID'].'.txt');
 	    }else{
             if(!getIsOn()){
                 setAllAction('Please turn me on!');

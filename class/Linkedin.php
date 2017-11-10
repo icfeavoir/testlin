@@ -496,15 +496,17 @@
 		}
 
 		public function getBotDetected(){
-			if(!is_file(ROOTPATH.'/cookie_'.$this->_accountID.'.txt') || !is_file(ROOTPATH.'/id_'.$this->_accountID))
-				return true;
-			$cookie = file_get_contents(ROOTPATH.'/cookie_'.$this->_accountID.'.txt');
-			if(strpos($cookie, 'delete me') == false && file_get_contents(ROOTPATH.'/id_'.$this->_accountID) != ""){ 
-			    return false;	// not detected
+			if(count($this->search_to_array('test', 1)) == 0){			// first request with no result --> disconnected
+				unlink(ROOTPATH.'/cookie_'.$this->_accountID.'.txt');	// delete cookies
+				$this->login();											// try to log again
+				if(count($this->search_to_array('test', 1)) == 0){		// still no result --> bot detected
+					return true;
+				}else{
+					return false;
+				}
 			}else{
-			    return true;
+				return false;
 			}
-
 		}
 
 		public function close(){
