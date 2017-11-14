@@ -198,6 +198,7 @@
                 $li = new Linkedin($account['ID']);
                 if($li->getBotDetected()){  // can't reconnect
                     setAction('This account is disconnected, you have to reconnect (with a human way): '.$account['email'], $account['ID']);
+                    sleep(600);
                 }else{
                     setAction('This account reconnected with success: '.$account['email'], $account['ID']);
                     setIsDisconnect(false, $account['ID']);
