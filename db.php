@@ -58,6 +58,8 @@
 		global $db;
 		$statement = $db->prepare('UPDATE bot_action SET action = :action WHERE accountID=:account');
 		$statement->execute(array(':action'=>$action, ':account'=>$account));
+
+		echo strftime( "%Y-%m-%d %H:%M" )." \tAccount ".$account." - \t".$action;
 	}
 
 	/* ON - OFF */
