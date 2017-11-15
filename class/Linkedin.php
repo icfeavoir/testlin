@@ -496,6 +496,10 @@
 		}
 
 		public function getBotDetected(){
+			// no cookies or empty?
+			if(!is_file(ROOTPATH.'/cookie_'.$this->_accountID.'.txt') || filesize(ROOTPATH.'/cookie_'.$this->_accountID.'.txt') == 0)
+				return true;
+
 			if(count($this->search_to_array('test', 1)) == 0){			// first request with no result --> disconnected
 				unlink(ROOTPATH.'/cookie_'.$this->_accountID.'.txt');	// delete cookies
 				$this->login();											// try to log again
