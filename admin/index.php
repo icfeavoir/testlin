@@ -207,6 +207,15 @@ $(document).ready(function(){
 				var msgs = resp.msgs;
 				// get user informations (name & jobs)
 				post({'action': 'getUserInformations', 'profile_id': msgs[0].profile_id}, selectedAccount, function(resp){
+					if(!resp.data.firstName){
+						$('#mark-read').attr('disabled', 'disabled');
+						$('#send-msg').attr('disabled', 'disabled');
+						$('#send-msg').text('The bot is disconnected on this server... You can reply from the real Linkedin!');
+					}else{
+						$('#mark-read').removeAttr('disabled');
+						$('#send-msg').removeAttr('disabled');
+						$('#send-msg').text('Send');
+					}
 					var userName = resp.data.firstName+' '+resp.data.lastName;
 					$('#conv-user-id').html("<a target='_blank' href='https://linkedin.com/in/"+msgs[0].profile_id+"'>GO</a>");
 					$('#conv-user-name').text(userName);
