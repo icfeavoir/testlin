@@ -8,5 +8,5 @@
         $function = $post->function;
         echo json_encode($function(...$post->data));
     }else{
-        print_r($post);
+        exit('No endpoint');
     }
