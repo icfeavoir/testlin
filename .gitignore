@@ -8,3 +8,5 @@ admin/context
 
 nohup\.out
 log.txt
+
+db.php
